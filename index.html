@@ -174,6 +174,7 @@ textarea{resize:vertical;min-height:72px}
 .resp-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
 .resp-mtto{background:#EFF6FF;color:#1D4ED8}
 .resp-enc{background:#F0FDF4;color:#15803D}
+.resp-comp{background:#F5F3FF;color:#6D28D9}
 .resp-ext{background:#FFF7ED;color:#C2410C}
 .resp-sis{background:#FAF5FF;color:#7C3AED}
 
@@ -561,6 +562,7 @@ const html = s => { const d = document.createElement('div'); d.innerHTML = s; re
 
 const ROL_LABEL = { director:"Director", santiago:"Gerente Mantenimiento", supervisor:"Supervisor", mantenimiento:"Mantenimiento", encargado:"Encargado de estación" };
 const FREQ_ORDER = { Mensual:1, Trimestral:2, Cuatrimestral:3, Semestral:4, Anual:5 };
+const RESP_ORDER = { mantenimiento:1, compartido:2, encargado:3, externo:4, sistemas:5 };
 const RESP_CLASS = { mantenimiento:"resp-mtto", encargado:"resp-enc", externo:"resp-ext", sistemas:"resp-sis" };
 const RESP_LABEL = { mantenimiento:"Mantenimiento", encargado:"Encargado", externo:"Externo", sistemas:"Sistemas" };
 
@@ -600,7 +602,7 @@ function semaforo(pct) {
 
 function respTag(resp, tambienEncargado) {
   if (tambienEncargado) {
-    return `<span class="resp-tag resp-mtto">Mtto</span> <span style="color:var(--texto3);font-size:10px">/</span> <span class="resp-tag resp-enc">Enc.</span>`;
+    return `<span class="resp-tag resp-comp">Compartido</span>`;
   }
   return `<span class="resp-tag ${RESP_CLASS[resp]||'resp-mtto'}">${RESP_LABEL[resp]||resp}</span>`;
 }
@@ -716,7 +718,7 @@ function construirNav() {
   if (rol === 'mantenimiento') {
     items.push({ id:'programa-mtto', icon:'ti-clipboard-list', label:'Mis actividades' });
   }
-  items.push({ id:'programa-todas', icon:'ti-table', label:'Programa completo' });
+  items.push({ id:'programa-todas', icon:'ti-table', label:'Plan de trabajo' });
   if (rol === 'externo' || true) { /* todos pueden ver externos */ }
   items.push({ id:'externos', icon:'ti-truck-delivery', label:'Externos' });
   if (admin) {
@@ -785,7 +787,7 @@ $('btnLogout').addEventListener('click', () => {
 // ── RENDER VIEWS ───────────────────────────────────────────────────────────
 async function renderVista(id) {
   const page = $('page');
-  const titles = { semaforo:'Dashboard', 'programa-enc':'Mi programa', 'programa-mtto':'Mis actividades', 'programa-todas':'Programa completo', externos:'Proveedores externos', catalogo:'Catálogo de actividades', planeacion:'Planeación anual', usuarios:'Usuarios' };
+  const titles = { semaforo:'Dashboard', 'programa-enc':'Mi plan de trabajo', 'programa-mtto':'Mis actividades', 'programa-todas':'Plan de trabajo', externos:'Proveedores externos', catalogo:'Catálogo de actividades', planeacion:'Planeación anual', usuarios:'Usuarios' };
   $('topbar-title').textContent = titles[id] || id;
   $('topbar-sub').textContent = '';
   page.innerHTML = `<div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div>`;
@@ -960,7 +962,8 @@ async function renderPrograma(page, opts) {
             <button class="dd-btn" id="ddRespBtn"><i class="ti ti-user" aria-hidden="true"></i>Responsable<span class="dd-arrow">▾</span></button>
             <div class="dd-panel" id="ddRespPanel">
               <label class="dd-opt"><input type="checkbox" class="cb-resp" value="mantenimiento">Mantenimiento</label>
-              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="encargado">Encargado + Compartido</label>
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="encargado">Encargado</label>
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="compartido">Compartido</label>
               <label class="dd-opt"><input type="checkbox" class="cb-resp" value="externo">Externo</label>
               <label class="dd-opt"><input type="checkbox" class="cb-resp" value="sistemas">Sistemas</label>
               <div class="dd-divider"></div><div class="dd-action" id="ddRespTodos">Todos</div>
@@ -1071,9 +1074,11 @@ async function aplicarFiltros() {
     if (freqSel && !freqSel.includes(act.freq)) return false;
     if (catSel && !catSel.includes(act.categoria)) return false;
     if (respSel) {
-      const matchPrimario = respSel.includes(act.responsable);
-      const matchEncShared = respSel.includes('encargado') && act.tambienEncargado;
-      if (!matchPrimario && !matchEncShared) return false;
+      const matchPrimario = respSel.includes(act.responsable) && !act.tambienEncargado;
+      const matchComp = respSel.includes('compartido') && act.tambienEncargado;
+      const matchMttoInclComp = respSel.includes('mantenimiento') && (act.responsable === 'mantenimiento');
+      const matchEncComp = respSel.includes('encargado') && act.responsable === 'encargado';
+      if (!matchPrimario && !matchComp && !matchMttoInclComp && !matchEncComp) return false;
     }
     if (busqueda && !normalizar(act.nombre).includes(normalizar(busqueda))) return false;
     if (mesesSelArr.length > 0 && !mesesSelArr.some(m=>(act.meses||[]).includes(m))) return false;
@@ -1083,16 +1088,19 @@ async function aplicarFiltros() {
   const cont = $('tablaPrograma');
   if (!acts.length) { cont.innerHTML = `<div class="loader"><span>No hay actividades con esos filtros</span></div>`; return; }
 
-  // Double grouping: freq → category
-  const byFreq = {};
+  // Triple grouping: responsable → frecuencia → categoría
+  const getRespKey = (act) => act.tambienEncargado ? 'compartido' : act.responsable;
+  const byResp = {};
   acts.forEach(([id,act]) => {
+    const resp = getRespKey(act);
     const f = act.freq||'Sin freq';
-    const c = act.categoria||'Sin categoría';
-    if (!byFreq[f]) byFreq[f] = {};
-    if (!byFreq[f][c]) byFreq[f][c] = [];
-    byFreq[f][c].push([id,act]);
+    const cat = act.categoria||'Sin categoría';
+    if (!byResp[resp]) byResp[resp] = {};
+    if (!byResp[resp][f]) byResp[resp][f] = {};
+    if (!byResp[resp][f][cat]) byResp[resp][f][cat] = [];
+    byResp[resp][f][cat].push([id,act]);
   });
-  const freqOrdenadas = Object.keys(byFreq).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9));
+  const respOrdenados = Object.keys(byResp).sort((a,b)=>(RESP_ORDER[a]||9)-(RESP_ORDER[b]||9));
 
   // Which months to show
   const mesesArr = mesesSelArr.length > 0 ? [...mesesSelArr].sort((a,b)=>a-b) : [1,2,3,4,5,6,7,8,9,10,11,12];
@@ -1107,97 +1115,79 @@ async function aplicarFiltros() {
   let contador = 0;
   let hayFilas = false;
 
-  freqOrdenadas.forEach(freq => {
-    const cats = Object.keys(byFreq[freq]).sort();
-    let freqHeaderShown = false;
-    cats.forEach(cat => {
-      let catHeaderShown = false;
-      byFreq[freq][cat].forEach(([actId,act]) => {
-        const celdas = mesesArr.map(mesNum => {
-          const esProg = (act.meses||[]).includes(mesNum);
-          if (!esProg) return `<td class="celda-mes" style="color:var(--borde);text-align:center">·</td>`;
-          const ej = prog[actId]?.[mesNum];
-          const esExt = _progCtx.esExterno;
-          const esComp = act.tambienEncargado;
-          if (esComp) {
-            // Split cell: show Mtto|Enc status independently
-            const ejM = prog[actId]?.[mesNum]?.mtto || {};
-            const ejE = prog[actId]?.[mesNum]?.enc  || {};
-            const rM = ejM.estado === 'R', rE = ejE.estado === 'R';
-            const vM = !rM && mesNum < mesHoy, vE = !rE && mesNum < mesHoy;
-            const cellM = `<span style="font-weight:700;font-size:11px;color:${rM?'var(--verde)':vM?'var(--rojo)':'var(--texto3)'}">${rM?'R':'P'}</span>`;
-            const cellE = `<span style="font-weight:700;font-size:11px;color:${rE?'var(--verde)':vE?'var(--rojo)':'var(--texto3)'}">${rE?'R':'P'}</span>`;
-            const bg = (rM&&rE)?'#DCFCE7':((!rM&&vM)||(!rE&&vE))?'#FEE2E2':'';
-            return `<td class="celda-mes" style="text-align:center;padding:4px 2px;${bg?'background:'+bg+';':''}">
-              <div style="display:flex;justify-content:center;align-items:center;gap:2px;line-height:1">
-                ${cellM}<span style="color:var(--borde);font-size:9px">|</span>${cellE}
-              </div>
-              <div style="font-size:8px;color:var(--texto3);line-height:1;margin-top:1px">M|E</div>
-            </td>`;
-          }
-          if (ej?.estado === 'R' || (esExt && ej?.estadoExterno === 'certificada')) {
-            return `<td class="celda-mes" title="Realizado: ${fmtFecha(ej?.fechaReal)}" style="background:#DCFCE7;text-align:center"><span style="color:var(--verde);font-weight:700;font-size:13px">R</span></td>`;
-          } else if (esExt && ej?.estadoExterno && ej.estadoExterno !== 'pendiente') {
-            const extBadge = { agendada:'Ag.', ejecutada:'Ej.' };
-            const extColor = { agendada:'var(--ambar)', ejecutada:'#1D4ED8' };
-            return `<td class="celda-mes" style="background:#FEF3C7;text-align:center" title="${ej.estadoExterno}"><span style="color:${extColor[ej.estadoExterno]};font-weight:700;font-size:11px">${extBadge[ej.estadoExterno]}</span></td>`;
-          } else if (mesNum < mesHoy) {
-            if (estadoSel === 'R') return null;
-            return `<td class="celda-mes" style="background:#FEE2E2;text-align:center"><span style="color:var(--rojo);font-weight:700;font-size:12px">P</span></td>`;
-          } else {
-            if (estadoSel === 'R' || estadoSel === 'vencida') return null;
-            return `<td class="celda-mes" style="text-align:center"><span style="color:var(--texto3);font-size:12px">P</span></td>`;
-          }
-        });
+  respOrdenados.forEach(respKey => {
+    const freqsDeResp = Object.keys(byResp[respKey]).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9));
+    let respHeaderShown = false;
+    const respLabel = RESP_LABEL[respKey] || respKey;
+    const respCls   = RESP_CLASS[respKey] || 'resp-mtto';
 
-        const tieneR = celdas.some(c=>c&&c.includes('DCFCE7'));
-        const tieneVencida = celdas.some(c=>c&&c.includes('FEE2E2'));
-        const tienePend = celdas.some(c=>c&&c.includes('texto3'));
-        if (estadoSel) {
-          const quiereR = estadoSel.includes('realizado');
-          const quiereV = estadoSel.includes('vencida');
-          const quiereP = estadoSel.includes('pendiente');
-          const match = (quiereR&&tieneR)||(quiereV&&tieneVencida)||(quiereP&&tienePend);
-          if (!match) return;
-        }
-
-        if (!freqHeaderShown) {
-          html += `<tr><td colspan="${mesesArr.length+3}" style="background:var(--acc);color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 12px">${freq}</td></tr>`;
-          freqHeaderShown = true;
-        }
-        if (!catHeaderShown) {
-          html += `<tr><td colspan="${mesesArr.length+3}" style="background:#E8E6DF;color:var(--acc);font-weight:600;font-size:11px;padding:6px 12px 6px 20px;border-bottom:1px solid var(--borde)">▸ ${cat}</td></tr>`;
-          catHeaderShown = true;
-        }
-
-        contador++;
-        hayFilas = true;
-        const rowBg = contador % 2 === 0 ? '#FAFAF8' : '#fff';
-        html += `<tr data-actid="${actId}" data-estid="${estId}" style="cursor:pointer;background:${rowBg}">
-          <td style="text-align:center;color:var(--texto3);font-size:11px;font-weight:600;padding:7px 6px">${contador}</td>
-          <td>
-            <div class="act-nombre">${act.nombre}</div>
-            ${act.critica ? '<span style="font-size:10px;color:var(--rojo);margin-top:2px;display:inline-block">📷 Requiere foto</span>' : ''}
-          </td>
-          ${celdas.map((celda, ci) => {
-            if (!celda) return `<td style="text-align:center;color:var(--borde)">·</td>`;
-            // Inject quick-R button inside the cell when it's a P cell and single month view
-            const mesNum = mesesArr[ci];
+    freqsDeResp.forEach(freq => {
+      const cats = Object.keys(byResp[respKey][freq]).sort();
+      let freqHeaderShown = false;
+      cats.forEach(cat => {
+        let catHeaderShown = false;
+        byResp[respKey][freq][cat].forEach(([actId,act]) => {
+          const celdas = mesesArr.map(mesNum => {
             const esProg = (act.meses||[]).includes(mesNum);
-            if (!esProg || act.tambienEncargado || _progCtx.esExterno) return celda;
-            const ejC = prog[actId]?.[mesNum];
-            const yaRC = ejC?.estado === 'R';
-            // Insert quick button inside P cells only
-            if (!yaRC) {
-              return celda.replace('</td>', `<button class="quick-r-btn" data-qactid="${actId}" data-qestid="${estId}" data-qmes="${mesNum}" data-qcritica="${act.critica?'1':'0'}" data-qr="0" title="Marcar como R" style="display:none;position:absolute;inset:0;width:100%;height:100%;background:rgba(21,128,61,.9);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:700;border-radius:0">✓R</button></td>`);
+            if (!esProg) return `<td class="celda-mes" style="color:var(--borde);text-align:center">·</td>`;
+            const ej = prog[actId]?.[mesNum];
+            const esExt = _progCtx.esExterno;
+            if (ej?.estado === 'R' || (esExt && ej?.estadoExterno === 'certificada')) {
+              return `<td class="celda-mes" title="Realizado: ${fmtFecha(ej?.fechaReal)}" style="background:#DCFCE7;text-align:center"><span style="color:var(--verde);font-weight:700;font-size:13px">R</span></td>`;
+            } else if (esExt && ej?.estadoExterno && ej.estadoExterno !== 'pendiente') {
+              const extBadge = { agendada:'Ag.', ejecutada:'Ej.' };
+              const extColor = { agendada:'var(--ambar)', ejecutada:'#1D4ED8' };
+              return `<td class="celda-mes" style="background:#FEF3C7;text-align:center" title="${ej.estadoExterno}"><span style="color:${extColor[ej.estadoExterno]};font-weight:700;font-size:11px">${extBadge[ej.estadoExterno]}</span></td>`;
+            } else if (mesNum < mesHoy) {
+              if (estadoSel && !estadoSel.includes('vencida') && !estadoSel.includes('pendiente')) return null;
+              return `<td class="celda-mes" style="background:#FEE2E2;text-align:center"><span style="color:var(--rojo);font-weight:700;font-size:12px">P</span></td>`;
+            } else {
+              if (estadoSel && !estadoSel.includes('pendiente')) return null;
+              return `<td class="celda-mes" style="text-align:center"><span style="color:var(--texto3);font-size:12px">P</span></td>`;
             }
-            return celda;
-          }).join('')}
-          <td>${respTag(act.responsable, act.tambienEncargado)}</td>
-        </tr>`;
+          });
+
+          const tieneR = celdas.some(c=>c&&c.includes('DCFCE7'));
+          const tieneVencida = celdas.some(c=>c&&c.includes('FEE2E2'));
+          const tienePend = celdas.some(c=>c&&c.includes('texto3'));
+          if (estadoSel) {
+            const quiereR = estadoSel.includes('realizado');
+            const quiereV = estadoSel.includes('vencida');
+            const quiereP = estadoSel.includes('pendiente');
+            const match = (quiereR&&tieneR)||(quiereV&&tieneVencida)||(quiereP&&tienePend);
+            if (!match) return;
+          }
+
+          if (!respHeaderShown) {
+            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#2C2C2A;color:#fff;font-weight:700;font-size:12px;padding:10px 14px"><span class="resp-tag ${respCls}" style="font-size:11px">${respLabel}</span></td></tr>`;
+            respHeaderShown = true;
+          }
+          if (!freqHeaderShown) {
+            html += `<tr><td colspan="${mesesArr.length+3}" style="background:var(--acc);color:#fff;font-weight:600;font-size:11px;text-transform:uppercase;padding:7px 14px 7px 24px">${freq}</td></tr>`;
+            freqHeaderShown = true;
+          }
+          if (!catHeaderShown) {
+            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#E8E6DF;color:var(--acc);font-weight:600;font-size:11px;padding:5px 14px 5px 34px;border-bottom:1px solid var(--borde)">▸ ${cat}</td></tr>`;
+            catHeaderShown = true;
+          }
+
+          contador++;
+          hayFilas = true;
+          const rowBg = contador % 2 === 0 ? '#FAFAF8' : '#fff';
+          html += `<tr data-actid="${actId}" data-estid="${estId}" style="cursor:pointer;background:${rowBg}">
+            <td style="text-align:center;color:var(--texto3);font-size:11px;font-weight:600;padding:7px 6px">${contador}</td>
+            <td>
+              <div class="act-nombre">${act.nombre}</div>
+              ${act.critica ? '<span style="font-size:10px;color:var(--rojo);margin-top:2px;display:inline-block">📷 Requiere foto</span>' : ''}
+            </td>
+            ${celdas.map(c=>c||`<td style="text-align:center;color:var(--borde)">·</td>`).join('')}
+            <td>${respTag(act.responsable, act.tambienEncargado)}</td>
+          </tr>`;
+        });
       });
     });
   });
+
 
   if (!hayFilas) { cont.innerHTML = `<div class="loader"><span>No hay actividades con esos filtros</span></div>`; return; }
 
@@ -1365,74 +1355,8 @@ function renderMarcadorForm(actId, estId, prog, act, jumpToFoto) {
   if (!cont) return;
   const puedeEditar = puede('editarEjecucion');
 
-  // ── COMPARTIDA: show two independent markers ────────────────────────────
-  if (act.tambienEncargado) {
-    const ejM = prog[actId]?.[mes]?.mtto || {};
-    const ejE = prog[actId]?.[mes]?.enc  || {};
-    const rM = ejM.estado === 'R', rE = ejE.estado === 'R';
-    // Determine which sub-marker this user can operate
-    const esMtto = ['director','santiago','mantenimiento'].includes(USER.rol);
-    const esEnc  = ['director','santiago','supervisor','encargado'].includes(USER.rol);
-    const subKey = esMtto && !esEnc ? 'mtto' : !esMtto && esEnc ? 'enc' : null; // null = director can choose
-
-    cont.innerHTML = `
-      <div class="err-box" id="marcErrC"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div style="border:1px solid var(--borde);border-radius:var(--rs);padding:10px;text-align:center">
-          <div style="font-size:11px;color:var(--texto2);margin-bottom:6px;font-weight:600">MANTENIMIENTO</div>
-          <div style="font-size:20px;font-weight:700;color:${rM?'var(--verde)':'var(--texto3)'}">${rM?'R':'P'}</div>
-          ${rM ? `<div style="font-size:10px;color:var(--texto3);margin-top:4px">${fmtFecha(ejM.fechaReal)}</div>` : ''}
-          ${(esMtto||puedeEditar) ? `<button class="btn ${rM?'btn-ghost':'btn-primary'} btn-sm" style="margin-top:8px;width:100%;font-size:11px" id="btnMarcarMtto">${rM?'Revertir a P':'Marcar R'}</button>` : ''}
-        </div>
-        <div style="border:1px solid var(--borde);border-radius:var(--rs);padding:10px;text-align:center">
-          <div style="font-size:11px;color:var(--texto2);margin-bottom:6px;font-weight:600">ENCARGADO</div>
-          <div style="font-size:20px;font-weight:700;color:${rE?'var(--verde)':'var(--texto3)'}">${rE?'R':'P'}</div>
-          ${rE ? `<div style="font-size:10px;color:var(--texto3);margin-top:4px">${fmtFecha(ejE.fechaReal)}</div>` : ''}
-          ${(esEnc||puedeEditar) ? `<button class="btn ${rE?'btn-ghost':'btn-primary'} btn-sm" style="margin-top:8px;width:100%;font-size:11px" id="btnMarcarEnc">${rE?'Revertir a P':'Marcar R'}</button>` : ''}
-        </div>
-      </div>
-      ${act.critica ? `
-        <div style="font-size:11px;color:var(--texto2);margin-bottom:6px">Foto de evidencia <span style="color:var(--rojo)">· obligatoria</span></div>
-        <div class="foto-drop" id="fotoDropC"><i class="ti ti-camera" aria-hidden="true"></i><span>Tomar foto o seleccionar</span></div>
-        <img id="fotoPreviewC" class="foto-preview hidden" alt="foto de evidencia">
-        <input type="file" accept="image/*" capture="environment" id="fotoInputC" class="hidden">` : ''}
-      <div class="field" style="margin-bottom:10px">
-        <label for="obsInputC">Observaciones</label>
-        <textarea id="obsInputC" placeholder="Opcional"></textarea>
-      </div>`;
-
-    fotoB64 = null;
-    if (act.critica) {
-      $('fotoDropC')?.addEventListener('click', () => $('fotoInputC')?.click());
-      $('fotoInputC')?.addEventListener('change', e => {
-        const file = e.target.files[0]; if (!file) return;
-        const rd = new FileReader();
-        rd.onload = () => { fotoB64=rd.result; $('fotoPreviewC').src=fotoB64; $('fotoPreviewC').classList.remove('hidden'); $('fotoDropC').classList.add('hidden'); };
-        rd.readAsDataURL(file);
-      });
-    }
-
-    async function marcarSub(sub, yaR) {
-      if (act.critica && !fotoB64 && !yaR) { const e=$('marcErr')||$('marcErrC'); if(e){e.textContent='Requiere fotografía.';e.classList.add('show');} return; }
-      if (yaR && !confirm('¿Revertir a Pendiente (P)?')) return;
-      const ahora = Date.now();
-      const obs = ($('obsInputC')||$('obsInput'))?.value.trim()||null;
-      if (yaR) {
-        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}/${sub}`, { estado:'P', fechaReal:null, marcadoPor:null });
-      } else {
-        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}/${sub}`, { estado:'R', fechaReal:ahora, marcadoPor:USER.id });
-        const ejId = `ej${ahora}`;
-        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, sub, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
-      }
-      $('modalAct').classList.add('hidden');
-      await refreshTabla();
-    }
-
-    $('btnMarcarMtto')?.addEventListener('click', () => marcarSub('mtto', rM));
-    $('btnMarcarEnc')?.addEventListener('click',  () => marcarSub('enc',  rE));
-    return;
-  }
-
+  // ── COMPARTIDA or NORMAL: same single-R flow ──────────────────────────
+  // (compartidas use single R — whoever marks it first closes it)
   // ── NORMAL activity ─────────────────────────────────────────────────────
   const ej = prog[actId]?.[mes];
   const yaRealizado = ej?.estado === 'R';
