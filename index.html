@@ -667,6 +667,7 @@ $('btnSeed').addEventListener('click', async () => {
   }
 });
 
+$('inpPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnLogin').click(); });
 $('btnLogin').addEventListener('click', async () => {
   const id = $('selUser').value, pass = $('inpPass').value;
   const err = $('loginErr'); err.classList.remove('show');
@@ -832,7 +833,6 @@ async function renderSemaforo(page) {
 }
 
 async function calcularYRenderSem(anio, mes, cont) {
-  // Only count Mantenimiento activities (including compartidas — mtto side)
   const actsMtto = Object.entries(CATALOGO).filter(([,a]) =>
     a.responsable === 'mantenimiento' || a.tambienEncargado
   );
@@ -840,58 +840,75 @@ async function calcularYRenderSem(anio, mes, cont) {
   const tarjetas = await Promise.all(Object.entries(ESTACIONES).map(async ([estId, est]) => {
     const prog = await dbGet(`programa/${anio}/${estId}`) || {};
     let tocaban = 0, realizadas = 0;
-
     actsMtto.forEach(([actId, act]) => {
       if (act.soloEstacion && act.soloEstacion !== estId) return;
-      if (!(act.meses||[]).includes(mes)) return; // only this month
+      if (!(act.meses||[]).includes(mes)) return;
       tocaban++;
       const ej = prog[actId]?.[mes];
-      const r = act.tambienEncargado ? ej?.mtto?.estado === 'R' : ej?.estado === 'R';
-      if (r) realizadas++;
+      if (ej?.estado === 'R') realizadas++;
     });
-
     const pct = tocaban > 0 ? Math.round((realizadas/tocaban)*100) : null;
     return { estId, nombre:est.nombre, pct, tocaban, realizadas };
   }));
 
   tarjetas.sort((a,b) => (a.pct??-1)-(b.pct??-1));
 
+  const totalTocaban  = tarjetas.reduce((s,t)=>s+(t.tocaban||0), 0);
+  const totalRealizadas = tarjetas.reduce((s,t)=>s+(t.realizadas||0), 0);
+  const pctGlobal = totalTocaban > 0 ? Math.round((totalRealizadas/totalTocaban)*100) : 0;
+  const colGlobal = pctGlobal>=85?'var(--verde)':pctGlobal>=60?'var(--ambar)':'var(--rojo)';
   const enVerde = tarjetas.filter(t=>t.pct!==null&&t.pct>=85).length;
   const enAmbar = tarjetas.filter(t=>t.pct!==null&&t.pct>=60&&t.pct<85).length;
   const enRojo  = tarjetas.filter(t=>t.pct!==null&&t.pct<60).length;
-  const sinDatos= tarjetas.filter(t=>t.pct===null).length;
 
   let html = `
-    <div class="kpi-grid" style="margin-bottom:16px">
-      <div class="kpi-card"><div class="kpi-label">Estaciones</div><div class="kpi-val">${tarjetas.length}</div></div>
-      <div class="kpi-card"><div class="kpi-label">En verde (≥85%)</div><div class="kpi-val" style="color:var(--verde)">${enVerde}</div></div>
-      <div class="kpi-card"><div class="kpi-label">En ámbar (60-84%)</div><div class="kpi-val" style="color:var(--ambar)">${enAmbar}</div></div>
-      <div class="kpi-card"><div class="kpi-label">En rojo (&lt;60%)</div><div class="kpi-val" style="color:var(--rojo)">${enRojo}</div></div>
+    <!-- Global KPI banner -->
+    <div style="background:var(--acc);border-radius:var(--r);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:12px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Cumplimiento global · ${MESES[mes-1]} ${anio}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.85)">Mantenimiento · ${totalRealizadas} de ${totalTocaban} actividades realizadas</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:48px;font-weight:800;color:${colGlobal};line-height:1">${pctGlobal}%</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">${tarjetas.filter(t=>t.pct!==null).length} estaciones evaluadas</div>
+      </div>
     </div>
-    <div class="section-title">Semaforización — ${MESES[mes-1]} ${anio} · Mantenimiento</div>
+
+    <!-- Mini KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div style="background:var(--verde-light);border-radius:var(--r);padding:12px 14px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:var(--verde)">${enVerde}</div>
+        <div style="font-size:11px;color:var(--verde);margin-top:2px;font-weight:600">● Verde ≥85%</div>
+      </div>
+      <div style="background:var(--ambar-light);border-radius:var(--r);padding:12px 14px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:var(--ambar)">${enAmbar}</div>
+        <div style="font-size:11px;color:var(--ambar);margin-top:2px;font-weight:600">● Ámbar 60-84%</div>
+      </div>
+      <div style="background:var(--rojo-light);border-radius:var(--r);padding:12px 14px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:var(--rojo)">${enRojo}</div>
+        <div style="font-size:11px;color:var(--rojo);margin-top:2px;font-weight:600">● Rojo &lt;60%</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Semaforización por estación</div>
     <div class="est-grid">`;
 
   tarjetas.forEach(t => {
-    const cls = t.pct===null ? 'sin-datos' : t.pct>=85 ? 'verde' : t.pct>=60 ? 'ambar' : 'rojo';
-    const pctTxt = t.pct !== null ? `${t.pct}%` : 'Sin datos';
-    const meta = t.pct !== null
-      ? `${t.realizadas} de ${t.tocaban} actividades`
-      : 'Sin programa generado';
-    html += `<div class="est-card ${cls}" data-nav-est="${t.estId}" style="cursor:pointer">
+    const cls = t.pct===null?'sin-datos':t.pct>=85?'verde':t.pct>=60?'ambar':'rojo';
+    const pctTxt = t.pct!==null ? `${t.pct}%` : '—';
+    const meta = t.pct!==null ? `${t.realizadas}/${t.tocaban} actividades` : 'Sin programa';
+    // Progress bar fill
+    const fillPct = t.pct||0;
+    const fillCol = t.pct>=85?'var(--verde)':t.pct>=60?'var(--ambar)':'var(--rojo)';
+    html += `<div class="est-card ${cls}" data-nav-est="${t.estId}" style="cursor:pointer;position:relative;overflow:hidden">
+      <div style="position:absolute;bottom:0;left:0;height:3px;width:${fillPct}%;background:${fillCol};opacity:.6;border-radius:0 0 var(--r) var(--r)"></div>
       <div class="est-nombre">${t.nombre}</div>
       <div class="est-pct">${pctTxt}</div>
       <div class="est-meta">${meta}</div>
     </div>`;
   });
 
-  html += `</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px;font-size:11px;color:var(--texto3)">
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--verde);display:inline-block"></span>Verde ≥85%</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--ambar);display:inline-block"></span>Ámbar 60-84%</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--rojo);display:inline-block"></span>Rojo &lt;60%</span>
-      <span>· Actividades de Mantenimiento programadas en ${MESES[mes-1]}</span>
-    </div>`;
-
+  html += `</div>`;
   cont.innerHTML = html;
 
   cont.querySelectorAll('[data-nav-est]').forEach(el => {
@@ -1105,10 +1122,13 @@ async function aplicarFiltros() {
   // Which months to show
   const mesesArr = mesesSelArr.length > 0 ? [...mesesSelArr].sort((a,b)=>a-b) : [1,2,3,4,5,6,7,8,9,10,11,12];
 
+  const estHdrNombre = estacionSel ? (ESTACIONES[estacionSel]?.nombre || estacionSel) : null;
   let html = `<div class="prog-table-wrap"><table class="prog-table">
-    <thead><tr>
-      <th style="width:36px;text-align:center">#</th>
-      <th>Actividad</th>`;
+    <thead>
+      ${estHdrNombre ? `<tr><td colspan="${mesesArr.length+3}" style="background:var(--rojo);color:#fff;padding:10px 14px;font-size:18px;font-weight:800;letter-spacing:.02em">${estHdrNombre}</td></tr>` : ''}
+      <tr>
+        <th style="width:36px;text-align:center">#</th>
+        <th>Actividad</th>`;
   mesesArr.forEach(m => { html += `<th class="mes-th">${MESES[m-1]}</th>`; });
   html += `<th class="resp-th">Responsable</th></tr></thead><tbody>`;
 
@@ -1159,11 +1179,7 @@ async function aplicarFiltros() {
           }
 
           if (!respHeaderShown) {
-            const estNombreHdr = estacionSel ? (ESTACIONES[estacionSel]?.nombre || estacionSel) : null;
-            const estHtml = estNombreHdr
-              ? `<span style="font-size:17px;font-weight:800;color:#fff;letter-spacing:.01em;margin-right:14px">${estNombreHdr}</span>`
-              : '';
-            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#2C2C2A;color:#fff;font-weight:700;font-size:12px;padding:10px 14px;display:flex;align-items:center;gap:8px">${estHtml}<span class="resp-tag ${respCls}" style="font-size:11px">${respLabel}</span></td></tr>`;
+            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#2C2C2A;color:#fff;font-weight:700;font-size:12px;padding:10px 14px"><span class="resp-tag ${respCls}" style="font-size:11px">${respLabel}</span></td></tr>`;
             respHeaderShown = true;
           }
           if (!freqHeaderShown) {
@@ -1302,82 +1318,91 @@ async function abrirModalActividad(actId, estId, prog, preselMes, jumpToFoto) {
   const modalBody = $('modalActBody');
   const modalFoot = $('modalActFooter');
 
-  // Info card
+  // Simplified modal: title + guide + photo + observations
+  const mesMarcado = preselMes || new Date().getMonth()+1;
+  const ejActual = prog[actId]?.[mesMarcado];
+  const yaR = ejActual?.estado === 'R';
+
   let body = `
     <div class="act-info-card">
       <div class="act-info-title">${act.nombre}</div>
       <div class="act-info-row">
-        <span>${act.freq}</span>
-        <span>·</span>
-        ${respTag(act.responsable)}
-        <span>·</span>
+        <span>${act.freq}</span><span>·</span>
+        ${respTag(act.responsable, act.tambienEncargado)}<span>·</span>
         <span>${act.categoria||''}</span>
-        ${act.critica ? '<span>· <span class="badge badge-rojo">📷 Foto obligatoria</span></span>' : ''}
+        ${act.critica ? '· <span class="badge badge-rojo">📷 Foto obligatoria</span>' : ''}
+      </div>
+      <div style="margin-top:6px;font-size:12px;color:var(--texto2)">Mes: <strong>${MESES[mesMarcado-1]} ${ANIO}</strong>
+        ${yaR ? `· <span style="color:var(--verde);font-weight:600">✓ Realizado el ${fmtFecha(ejActual.fechaReal)}</span>` : ''}
       </div>
     </div>`;
 
-  // Guía de pasos (si existe)
+  // Guide (only if exists)
   if (act.guia) {
     body += `<div class="guia-section">
       <div class="guia-title"><i class="ti ti-info-circle" aria-hidden="true"></i> Guía de revisión</div>
       <div class="guia-text">${act.guia}</div>
     </div>`;
-  } else {
-    body += `<div class="guia-section" style="opacity:.6">
-      <div class="guia-title"><i class="ti ti-info-circle" aria-hidden="true"></i> Guía de revisión</div>
-      <div class="guia-text" style="font-style:italic">Guía pendiente de configurar. El Director puede agregarla desde el Catálogo.</div>
-    </div>`;
-  }
-
-  // Meses del programa
-  body += `<div class="section-title">Estado del programa ${ANIO}</div>`;
-
-  const mesHtml = (act.meses||[]).map(m => {
-    const ej = prog[actId]?.[m];
-    const esPasado = m <= new Date().getMonth()+1;
-    let estado = 'P', cls = esPasado ? 'vencida' : 'p', title = '';
-    if (ej?.estado === 'R') { estado='R'; cls='r'; title = `Realizado: ${fmtFecha(ej.fechaReal)}`; }
-    return `<span class="badge ${cls==='r'?'badge-verde':cls==='vencida'?'badge-rojo':'badge-gris'}" 
-            style="margin:2px;cursor:pointer;padding:4px 10px;font-size:11px"
-            data-mes="${m}" title="${title}">${MESES[m-1]}: ${estado}</span>`;
-  }).join('');
-  body += `<div class="mb-12">${mesHtml}</div>`;
-
-  // Historial
-  const histData = await dbGet(`ejecuciones/${estId}/${actId}`) || {};
-  const histItems = Object.values(histData).sort((a,b)=>b.fechaReal-a.fechaReal);
-  if (histItems.length) {
-    body += `<div class="section-title">Historial de ejecuciones</div>`;
-    histItems.slice(0,5).forEach(h => {
-      const quien = USUARIOS[h.marcadoPor]?.nombre || h.marcadoPor || '—';
-      body += `<div class="hist-item">
-        <div class="hist-fecha">${fmtFecha(h.fechaReal)} — Mes: ${MESES[h.mes-1]}</div>
-        <div class="hist-meta">Registrado por: ${quien}</div>
-        ${h.observaciones ? `<div class="hist-meta mt-12">${h.observaciones}</div>` : ''}
-        ${h.foto ? `<img src="${h.foto}" style="max-width:100%;border-radius:4px;margin-top:6px" alt="foto de evidencia">` : ''}
-      </div>`;
-    });
   }
 
   modalBody.innerHTML = body;
 
-  // Footer — botón marcar según mes seleccionado
+  // Footer: photo + observations + button
   const puedeMarcar = ['director','santiago','supervisor','mantenimiento','encargado'].includes(USER.rol);
   if (puedeMarcar) {
     modalFoot.innerHTML = `
       <div style="width:100%">
+        <div class="err-box" id="marcErr"></div>
+        ${act.critica ? `
+          <div style="font-size:11px;color:var(--texto2);margin-bottom:6px">Foto de evidencia <span style="color:var(--rojo)">· obligatoria</span></div>
+          <div class="foto-drop" id="fotoDrop"><i class="ti ti-camera" aria-hidden="true"></i><span>Tomar foto o seleccionar</span></div>
+          <img id="fotoPreview" class="foto-preview hidden" alt="foto de evidencia">
+          <input type="file" accept="image/*" capture="environment" id="fotoInput" class="hidden">` : ''}
         <div class="field" style="margin-bottom:10px">
-          <label for="selMesMarcar">Marcar mes</label>
-          <select id="selMesMarcar">
-            ${(act.meses||[]).map(m=>`<option value="${m}">${MESES[m-1]}</option>`).join('')}
-          </select>
+          <label for="obsInput">Observaciones</label>
+          <textarea id="obsInput" placeholder="Opcional — describe lo que encontraste">${ejActual?.observaciones||''}</textarea>
         </div>
-        <div id="marcadorForm"></div>
+        <div style="display:flex;gap:8px">
+          ${yaR && puede('editarEjecucion') ? `<button class="btn btn-ghost btn-sm" id="btnDesmarcar"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i> Revertir a P</button>` : ''}
+          <button class="btn btn-primary" id="btnMarcar" style="flex:1">
+            <i class="ti ti-check" aria-hidden="true"></i> ${yaR ? 'Actualizar registro' : 'Marcar como R'}
+          </button>
+        </div>
       </div>`;
-    const selMes = $('selMesMarcar');
-    selMes.value = String(preselMes || new Date().getMonth()+1);
-    selMes.addEventListener('change', () => renderMarcadorForm(actId, estId, prog, act, false));
-    renderMarcadorForm(actId, estId, prog, act, jumpToFoto);
+
+    fotoB64 = null;
+    if (act.critica) {
+      $('fotoDrop')?.addEventListener('click', () => $('fotoInput')?.click());
+      $('fotoInput')?.addEventListener('change', e => {
+        const file = e.target.files[0]; if (!file) return;
+        const rd = new FileReader();
+        rd.onload = () => { fotoB64=rd.result; $('fotoPreview').src=fotoB64; $('fotoPreview').classList.remove('hidden'); $('fotoDrop').classList.add('hidden'); };
+        rd.readAsDataURL(file);
+      });
+      if (jumpToFoto) setTimeout(() => $('fotoInput')?.click(), 200);
+    }
+
+    $('btnMarcar')?.addEventListener('click', async () => {
+      const err = $('marcErr'); err.classList.remove('show');
+      if (act.critica && !fotoB64 && !yaR) { err.textContent='Esta actividad requiere fotografía.'; err.classList.add('show'); return; }
+      const btn = $('btnMarcar'); btn.disabled=true; btn.textContent='Guardando...';
+      const ahora = Date.now();
+      const obs = $('obsInput')?.value.trim()||null;
+      try {
+        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mesMarcado}`, { estado:'R', fechaReal:ahora, marcadoPor:USER.id });
+        const ejId = `ej${ahora}`;
+        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes:mesMarcado, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
+        $('modalAct').classList.add('hidden');
+        await refreshTabla();
+      } catch(e) { err.textContent='Error: '+e.message; err.classList.add('show'); btn.disabled=false; btn.textContent='Marcar como R'; }
+    });
+
+    $('btnDesmarcar')?.addEventListener('click', async () => {
+      if (!confirm('¿Revertir a Pendiente (P)?')) return;
+      await dbSet(`programa/${ANIO}/${estId}/${actId}/${mesMarcado}`, { estado:'P', fechaReal:null, marcadoPor:null });
+      $('modalAct').classList.add('hidden');
+      await refreshTabla();
+    });
   } else {
     modalFoot.innerHTML = '';
   }
@@ -1385,83 +1410,7 @@ async function abrirModalActividad(actId, estId, prog, preselMes, jumpToFoto) {
   $('modalAct').classList.remove('hidden');
 }
 
-function renderMarcadorForm(actId, estId, prog, act, jumpToFoto) {
-  const mes = parseInt($('selMesMarcar')?.value);
-  if (!mes) return;
-  const cont = $('marcadorForm');
-  if (!cont) return;
-  const puedeEditar = puede('editarEjecucion');
 
-  // ── COMPARTIDA or NORMAL: same single-R flow ──────────────────────────
-  // (compartidas use single R — whoever marks it first closes it)
-  // ── NORMAL activity ─────────────────────────────────────────────────────
-  const ej = prog[actId]?.[mes];
-  const yaRealizado = ej?.estado === 'R';
-
-  if (yaRealizado && !puedeEditar) {
-    cont.innerHTML = `<div class="badge badge-verde" style="padding:8px 12px">✓ Realizado el ${fmtFecha(ej.fechaReal)}</div>`;
-    return;
-  }
-
-  cont.innerHTML = `
-    <div class="err-box" id="marcErr"></div>
-    ${yaRealizado ? `<div class="badge badge-verde mb-12" style="padding:8px 12px">✓ Ya realizado — puedes sobreescribir</div>` : ''}
-    <div class="fecha-auto">
-      <i class="ti ti-clock" aria-hidden="true"></i>
-      <span>${fmtFecha(Date.now())}</span>
-      <span class="tag">automático</span>
-    </div>
-    ${act.critica ? `
-      <div class="field-label" style="font-size:11px;color:var(--texto2);margin-bottom:6px">Foto de evidencia <span style="color:var(--rojo)">· obligatoria</span></div>
-      <div class="foto-drop" id="fotoDrop"><i class="ti ti-camera" aria-hidden="true"></i><span>Tomar foto o seleccionar</span></div>
-      <img id="fotoPreview" class="foto-preview hidden" alt="foto de evidencia">
-      <input type="file" accept="image/*" capture="environment" id="fotoInput" class="hidden">` : ''}
-    <div class="field" style="margin-bottom:10px">
-      <label for="obsInput">Observaciones</label>
-      <textarea id="obsInput" placeholder="Opcional — describe lo que encontraste"></textarea>
-    </div>
-    <div style="display:flex;gap:8px">
-      ${yaRealizado ? `<button class="btn btn-danger btn-sm" id="btnDesmarcar"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i> Revertir a P</button>` : ''}
-      <button class="btn btn-primary" id="btnMarcar" style="flex:1"><i class="ti ti-check" aria-hidden="true"></i> Marcar como R</button>
-    </div>`;
-
-  fotoB64 = null;
-  if (act.critica) {
-    $('fotoDrop').addEventListener('click', () => $('fotoInput').click());
-    $('fotoInput').addEventListener('change', e => {
-      const file = e.target.files[0]; if (!file) return;
-      const rd = new FileReader();
-      rd.onload = () => { fotoB64 = rd.result; $('fotoPreview').src=fotoB64; $('fotoPreview').classList.remove('hidden'); $('fotoDrop').classList.add('hidden'); };
-      rd.readAsDataURL(file);
-    });
-    // If called from quick button, open file picker immediately
-    if (jumpToFoto) setTimeout(() => $('fotoInput')?.click(), 200);
-  }
-
-  $('btnMarcar').addEventListener('click', async () => {
-    const err = $('marcErr'); err.classList.remove('show');
-    if (act.critica && !fotoB64) { err.textContent='Esta actividad requiere fotografía.'; err.classList.add('show'); return; }
-    const btn = $('btnMarcar'); btn.disabled=true; btn.textContent='Guardando...';
-    const ahora = Date.now();
-    const obs = $('obsInput')?.value.trim()||null;
-    try {
-      await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'R', fechaReal:ahora, marcadoPor:USER.id });
-      const ejId = `ej${ahora}`;
-      await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
-      $('modalAct').classList.add('hidden');
-      await refreshTabla();
-    } catch(e) { err.textContent='Error al guardar: '+e.message; err.classList.add('show'); btn.disabled=false; btn.textContent='Marcar como R'; }
-  });
-
-  if (yaRealizado) {
-    $('btnDesmarcar').addEventListener('click', async () => {
-      if (!confirm('¿Revertir esta actividad a Pendiente (P)?')) return;
-      await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'P', fechaReal:null, marcadoPor:null });
-      $('modalAct').classList.add('hidden');
-      await refreshTabla();
-    });
-  }
-}
 
 $('modalActClose').addEventListener('click', () => $('modalAct').classList.add('hidden'));
 
