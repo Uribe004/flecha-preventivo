@@ -1007,6 +1007,15 @@ async function renderPrograma(page, opts) {
 }
 
 
+async function refreshTabla() {
+  // Re-run filters without resetting the UI — preserves all dropdown selections
+  if (['programa-enc','programa-mtto','programa-todas','externos'].includes(vistaActual)) {
+    await aplicarFiltros();
+  } else {
+    await renderVista(vistaActual);
+  }
+}
+
 async function aplicarFiltros() {
   // Read from dropdown checkboxes
   const estCbs   = [...document.querySelectorAll('.cb-est:checked')].map(cb=>cb.value);
@@ -1071,7 +1080,7 @@ async function aplicarFiltros() {
       <th style="width:36px;text-align:center">#</th>
       <th>Actividad</th>`;
   mesesArr.forEach(m => { html += `<th class="mes-th">${MESES[m-1]}</th>`; });
-  html += `<th class="resp-th">Responsable</th></tr></thead><tbody>`;
+  html += `<th class="resp-th">Responsable</th><th style="width:60px"></th></tr></thead><tbody>`;
 
   let contador = 0;
   let hayFilas = false;
@@ -1142,6 +1151,19 @@ async function aplicarFiltros() {
         contador++;
         hayFilas = true;
         const rowBg = contador % 2 === 0 ? '#FAFAF8' : '#fff';
+        // Quick R button — only for non-critical, non-compartida, when a single month is selected
+        const mesUnico = mesesSelArr.length === 1 ? mesesSelArr[0] : (mesesArr.length===1?mesesArr[0]:null);
+        const ejActual = mesUnico ? (prog[actId]?.[mesUnico]) : null;
+        const yaR = ejActual?.estado === 'R';
+        const showQuickBtn = mesUnico && !act.tambienEncargado && !_progCtx.esExterno;
+        const quickBtn = showQuickBtn ? `
+          <button class="quick-r-btn btn btn-sm ${yaR?'btn-ghost':'btn-primary'}"
+            data-qactid="${actId}" data-qestid="${estId}" data-qmes="${mesUnico}" data-qcritica="${act.critica?'1':'0'}" data-qr="${yaR?'1':'0'}"
+            style="padding:4px 10px;font-size:11px;white-space:nowrap"
+            title="${yaR?'Revertir a P':'Marcar como R'}">
+            ${yaR ? '<i class="ti ti-rotate-clockwise"></i> P' : '<i class="ti ti-check"></i> R'}
+          </button>` : '';
+
         html += `<tr data-actid="${actId}" data-estid="${estId}" style="cursor:pointer;background:${rowBg}">
           <td style="text-align:center;color:var(--texto3);font-size:11px;font-weight:600;padding:7px 6px">${contador}</td>
           <td>
@@ -1150,6 +1172,7 @@ async function aplicarFiltros() {
           </td>
           ${celdas.map(c=>c||`<td style="text-align:center;color:var(--borde)">·</td>`).join('')}
           <td>${respTag(act.responsable, act.tambienEncargado)}</td>
+          <td style="padding:6px 8px;white-space:nowrap">${quickBtn}</td>
         </tr>`;
       });
     });
@@ -1166,12 +1189,48 @@ async function aplicarFiltros() {
     </div>`;
 
   cont.innerHTML = html;
+  // Quick R button — stop propagation so it doesn't open modal
+  cont.querySelectorAll('.quick-r-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const actId   = btn.getAttribute('data-qactid');
+      const estId   = btn.getAttribute('data-qestid');
+      const mes     = parseInt(btn.getAttribute('data-qmes'));
+      const critica = btn.getAttribute('data-qcritica') === '1';
+      const yaR     = btn.getAttribute('data-qr') === '1';
+      const act     = CATALOGO[actId];
+
+      if (yaR) {
+        // Revert to P
+        if (!confirm('¿Revertir esta actividad a Pendiente (P)?')) return;
+        await dbSet(`programa/${anio}/${estId}/${actId}/${mes}`, { estado:'P', fechaReal:null, marcadoPor:null });
+        await refreshTabla();
+        return;
+      }
+
+      if (critica) {
+        // Open modal directly on the photo section
+        const progRow = await dbGet(`programa/${anio}/${estId}`) || {};
+        abrirModalActividad(actId, estId, progRow, mes, true);
+      } else {
+        // Mark R directly without modal
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ti ti-loader-2"></i>';
+        await dbSet(`programa/${anio}/${estId}/${actId}/${mes}`, { estado:'R', fechaReal:Date.now(), marcadoPor:USER.id });
+        const ejId = `ej${Date.now()}`;
+        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:Date.now(), mes, marcadoPor:USER.id });
+        await refreshTabla();
+      }
+    });
+  });
+
+  // Row click → open modal
   cont.querySelectorAll('tr[data-actid]').forEach(row => {
-    row.addEventListener('click', async () => {
+    row.addEventListener('click', async e => {
+      if (e.target.closest('.quick-r-btn')) return; // handled above
       const actId = row.getAttribute('data-actid');
       const estId = row.getAttribute('data-estid');
       if (_progCtx.esExterno) {
-        // For externos, show month picker first
         const act = CATALOGO[actId];
         const mesesAct = (act?.meses||[]);
         const mes = mesesAct.length === 1 ? mesesAct[0] : parseInt(prompt(`Selecciona el mes (${mesesAct.map(m=>MESES[m-1]).join(', ')}):`, mesesAct[0]));
@@ -1185,7 +1244,7 @@ async function aplicarFiltros() {
 }
 
 // ── MODAL ACTIVIDAD ────────────────────────────────────────────────────────
-async function abrirModalActividad(actId, estId, prog) {
+async function abrirModalActividad(actId, estId, prog, preselMes, jumpToFoto) {
   const act = CATALOGO[actId];
   if (!act) return;
   const estNombre = ESTACIONES[estId]?.nombre || estId;
@@ -1268,9 +1327,9 @@ async function abrirModalActividad(actId, estId, prog) {
         <div id="marcadorForm"></div>
       </div>`;
     const selMes = $('selMesMarcar');
-    selMes.value = String(new Date().getMonth()+1);
-    selMes.addEventListener('change', () => renderMarcadorForm(actId, estId, prog, act));
-    renderMarcadorForm(actId, estId, prog, act);
+    selMes.value = String(preselMes || new Date().getMonth()+1);
+    selMes.addEventListener('change', () => renderMarcadorForm(actId, estId, prog, act, false));
+    renderMarcadorForm(actId, estId, prog, act, jumpToFoto);
   } else {
     modalFoot.innerHTML = '';
   }
@@ -1278,7 +1337,7 @@ async function abrirModalActividad(actId, estId, prog) {
   $('modalAct').classList.remove('hidden');
 }
 
-function renderMarcadorForm(actId, estId, prog, act) {
+function renderMarcadorForm(actId, estId, prog, act, jumpToFoto) {
   const mes = parseInt($('selMesMarcar')?.value);
   if (!mes) return;
   const cont = $('marcadorForm');
@@ -1345,7 +1404,7 @@ function renderMarcadorForm(actId, estId, prog, act) {
         await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, sub, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
       }
       $('modalAct').classList.add('hidden');
-      await renderVista(vistaActual);
+      await refreshTabla();
     }
 
     $('btnMarcarMtto')?.addEventListener('click', () => marcarSub('mtto', rM));
@@ -1393,6 +1452,8 @@ function renderMarcadorForm(actId, estId, prog, act) {
       rd.onload = () => { fotoB64 = rd.result; $('fotoPreview').src=fotoB64; $('fotoPreview').classList.remove('hidden'); $('fotoDrop').classList.add('hidden'); };
       rd.readAsDataURL(file);
     });
+    // If called from quick button, open file picker immediately
+    if (jumpToFoto) setTimeout(() => $('fotoInput')?.click(), 200);
   }
 
   $('btnMarcar').addEventListener('click', async () => {
@@ -1406,7 +1467,7 @@ function renderMarcadorForm(actId, estId, prog, act) {
       const ejId = `ej${ahora}`;
       await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
       $('modalAct').classList.add('hidden');
-      await renderVista(vistaActual);
+      await refreshTabla();
     } catch(e) { err.textContent='Error al guardar: '+e.message; err.classList.add('show'); btn.disabled=false; btn.textContent='Marcar como R'; }
   });
 
@@ -1415,7 +1476,7 @@ function renderMarcadorForm(actId, estId, prog, act) {
       if (!confirm('¿Revertir esta actividad a Pendiente (P)?')) return;
       await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'P', fechaReal:null, marcadoPor:null });
       $('modalAct').classList.add('hidden');
-      await renderVista(vistaActual);
+      await refreshTabla();
     });
   }
 }
