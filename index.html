@@ -6,315 +6,1848 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Flecha Prev.">
 <meta name="theme-color" content="#444441">
 <title>Flecha Preventivo</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
+/* ── RESET & VARS ─────────────────────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --acc:#444441;--acc-dark:#2C2C2A;--acc-light:#F1EFE8;
-  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
-  --g400:#9CA3AF;--g500:#6B7280;--g600:#4B5563;--g700:#374151;--g800:#1F2937;--g900:#111827;
-  --white:#FFFFFF;
-  --red:#A32D2D;--red-light:#FCEBEB;--red-dark:#501313;
-  --amber:#854F0B;--amber-light:#FAEEDA;
-  --green:#3B6D11;--green-light:#EAF3DE;
-  --r:10px;--rs:6px;
+  --sidebar-w:220px;
+  --sidebar-bg:#444441;
+  --sidebar-hover:#5A5956;
+  --sidebar-active:#2C2C2A;
+  --acc:#444441;
+  --rojo:#B91C1C;
+  --rojo-light:#FEE2E2;
+  --rojo-dark:#7F1D1D;
+  --verde:#15803D;
+  --verde-light:#DCFCE7;
+  --ambar:#B45309;
+  --ambar-light:#FEF3C7;
+  --fondo:#F8F7F5;
+  --blanco:#FFFFFF;
+  --borde:#E5E3DC;
+  --texto:#1A1A1A;
+  --texto2:#6B7280;
+  --texto3:#9CA3AF;
+  --r:8px;--rs:6px;
 }
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);font-size:15px;line-height:1.5}
-#app{min-height:100%;display:flex;flex-direction:column}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--fondo);color:var(--texto);font-size:14px;line-height:1.5}
 
-/* AUTH */
-#auth{position:fixed;inset:0;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;z-index:999;overflow-y:auto}
-.auth-logo{height:48px;margin-bottom:1.5rem;object-fit:contain}
-.auth-card{width:100%;max-width:360px;background:var(--white);border:1px solid var(--g200);border-radius:var(--r);padding:1.75rem;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-.auth-title{font-size:18px;font-weight:700;margin-bottom:4px;color:var(--acc-dark)}
-.auth-sub{font-size:13px;color:var(--g500);margin-bottom:1.25rem}
-.fl{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
-.fl label{font-size:12px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.04em}
-select,input[type=text],input[type=password],input[type=number],textarea{
-  width:100%;padding:10px 12px;border:1px solid var(--g300);border-radius:var(--rs);
-  font-size:14px;color:var(--g900);background:var(--white);-webkit-appearance:none;appearance:none;
+/* ── AUTH ─────────────────────────────────────────────────────────────────── */
+#auth{position:fixed;inset:0;background:var(--fondo);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
+.auth-box{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);padding:2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.auth-logo{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem}
+.auth-logo span{font-size:18px;font-weight:700;color:var(--acc)}
+.auth-logo i{font-size:22px;color:var(--acc)}
+.auth-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--texto2);margin-bottom:1.25rem}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:.04em}
+select,input[type=text],input[type=password],input[type=date],input[type=number],textarea{
+  width:100%;padding:9px 12px;border:1px solid var(--borde);border-radius:var(--rs);
+  font-size:13px;color:var(--texto);background:var(--blanco);-webkit-appearance:none;appearance:none;
+  font-family:inherit;
 }
 select:focus,input:focus,textarea:focus{outline:none;border-color:var(--acc)}
-.btn{
-  width:100%;padding:12px;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;
-  background:var(--acc);color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+textarea{resize:vertical;min-height:72px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--acc);color:#fff;width:100%}
+.btn-danger{background:var(--rojo);color:#fff}
+.btn-ghost{background:none;color:var(--texto2);border:1px solid var(--borde)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.err-box{font-size:12px;color:var(--rojo);background:var(--rojo-light);border-radius:var(--rs);padding:8px 12px;margin-bottom:12px;display:none}
+.err-box.show{display:block}
+.link-btn{background:none;border:none;color:var(--texto3);font-size:11px;text-decoration:underline;cursor:pointer;width:100%;margin-top:12px;font-family:inherit}
+
+/* ── LAYOUT ───────────────────────────────────────────────────────────────── */
+#layout{display:none;height:100vh;overflow:hidden}
+#layout.visible{display:flex}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto}
+.sb-header{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo{display:flex;align-items:center;gap:8px}
+.sb-logo-text{font-size:13px;font-weight:700;color:#fff}
+.sb-logo-sub{font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
+.sb-user{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-user-name{font-size:12px;font-weight:600;color:#fff}
+.sb-user-rol{font-size:10px;color:rgba(255,255,255,.6)}
+.sb-nav{flex:1;padding:8px 0}
+.sb-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);padding:12px 14px 4px;text-transform:uppercase;letter-spacing:.06em}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:inherit;border-radius:0;transition:background .15s}
+.sb-item:hover{background:var(--sidebar-hover);color:#fff}
+.sb-item.active{background:var(--sidebar-active);color:#fff}
+.sb-item i{font-size:16px;flex-shrink:0}
+.sb-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,.1)}
+.sb-logout{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.6);cursor:pointer;font-size:12px;background:none;border:none;font-family:inherit;width:100%}
+.sb-logout:hover{color:#fff}
+
+/* MAIN CONTENT */
+#content{flex:1;overflow-y:auto;height:100vh;display:flex;flex-direction:column}
+#topbar{background:var(--blanco);border-bottom:1px solid var(--borde);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#topbar-title{font-size:15px;font-weight:700}
+#topbar-sub{font-size:12px;color:var(--texto2);margin-left:auto}
+#hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--texto);padding:2px}
+#page{flex:1;padding:20px}
+
+/* MOBILE SIDEBAR OVERLAY */
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90}
+#sb-overlay.show{display:block}
+#sidebar.mobile-open{position:fixed;left:0;top:0;bottom:0;z-index:100}
+
+/* BOTTOM NAV (mobile) */
+#bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--blanco);border-top:1px solid var(--borde);z-index:50;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+.bn-items{display:flex;justify-content:space-around}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--texto3);background:none;border:none;cursor:pointer;padding:4px 12px;font-family:inherit}
+.bn-item.active{color:var(--acc)}
+.bn-item i{font-size:20px}
+.bn-item span{font-size:10px;font-weight:500}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  #sidebar{display:none;width:var(--sidebar-w)}
+  #sidebar.mobile-open{display:flex}
+  #hamburger{display:flex}
+  #topbar-sub{display:none}
+  #bottomnav{display:block}
+  #page{padding:14px;padding-bottom:80px}
 }
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-secondary{background:var(--white);color:var(--acc-dark);border:1px solid var(--g300)}
-.auth-error{font-size:13px;color:var(--red);background:var(--red-light);border-radius:var(--rs);padding:8px 12px;margin-bottom:12px;display:none}
-.auth-error.show{display:block}
 
-/* HEADER */
-#header{background:var(--acc);color:var(--white);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-#header .titulo{font-size:14px;font-weight:600}
-#header .sub{font-size:12px;opacity:.8}
-#header .logout{margin-left:auto;background:none;border:none;color:var(--white);opacity:.85;font-size:18px;cursor:pointer;padding:4px}
+/* ── COMPONENTS ───────────────────────────────────────────────────────────── */
+.card{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);padding:16px}
+.card+.card{margin-top:12px}
+.section-title{font-size:11px;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 10px}
+.section-title:first-child{margin-top:0}
 
-/* MAIN */
-#main{flex:1;padding:14px;padding-bottom:80px;max-width:760px;width:100%;margin:0 auto}
-.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--g500);text-align:center;gap:10px}
-.placeholder i{font-size:32px;color:var(--g400)}
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);padding:14px}
+.kpi-label{font-size:11px;color:var(--texto2);margin-bottom:4px}
+.kpi-val{font-size:26px;font-weight:700}
+.kpi-sub{font-size:11px;color:var(--texto3);margin-top:2px}
 
-/* BOTTOM NAV */
-#bottomnav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);
-  display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:50}
-.navitem{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--g400);background:none;border:none;cursor:pointer;padding:4px 12px}
-.navitem.active{color:var(--acc-dark)}
-.navitem i{font-size:20px}
-.navitem span{font-size:10px}
+/* SEMAFORO ESTACION */
+.est-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.est-card{border-radius:var(--r);padding:14px;cursor:pointer;transition:transform .1s}
+.est-card:hover{transform:translateY(-1px)}
+.est-card.verde{background:var(--verde-light)}
+.est-card.ambar{background:var(--ambar-light)}
+.est-card.rojo{background:var(--rojo-light)}
+.est-card.sin-datos{background:var(--fondo);border:1px solid var(--borde)}
+.est-nombre{font-size:13px;font-weight:600;margin-bottom:4px}
+.est-pct{font-size:24px;font-weight:700;margin-bottom:2px}
+.est-meta{font-size:11px;opacity:.8}
+.est-card.verde .est-nombre,.est-card.verde .est-pct,.est-card.verde .est-meta{color:var(--verde)}
+.est-card.ambar .est-nombre,.est-card.ambar .est-pct,.est-card.ambar .est-meta{color:var(--ambar)}
+.est-card.rojo .est-nombre,.est-card.rojo .est-pct,.est-card.rojo .est-meta{color:var(--rojo-dark)}
+.est-card.sin-datos .est-nombre{color:var(--texto2)}
+.est-card.sin-datos .est-pct{font-size:14px;color:var(--texto3)}
 
-.hidden{display:none !important}
+/* TABLA PROGRAMA */
+.prog-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.prog-toolbar select{width:auto;padding:7px 10px;font-size:12px}
+.filter-btn{padding:6px 12px;border-radius:var(--rs);border:1px solid var(--borde);background:var(--blanco);font-size:12px;cursor:pointer;font-family:inherit;color:var(--texto2)}
+.filter-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.prog-table-wrap{overflow-x:auto;border:1px solid var(--borde);border-radius:var(--r)}
+.prog-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.prog-table th{background:var(--acc);color:#fff;padding:8px 10px;text-align:center;font-weight:600;font-size:11px;white-space:nowrap}
+.prog-table th:first-child{text-align:left;min-width:280px}
+.prog-table th.mes-th{width:44px;min-width:44px}
+.prog-table th.resp-th{min-width:140px;text-align:left}
+.prog-table td{padding:7px 10px;border-bottom:1px solid var(--borde);vertical-align:middle}
+.prog-table tr:last-child td{border-bottom:none}
+.prog-table tr:hover td{background:#FAFAF8;cursor:pointer}
+.prog-table .freq-row td{background:#F1EFE8;font-weight:700;font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
+.prog-table .act-nombre{font-size:12px;line-height:1.4}
+.prog-table .cat-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#E5E3DC;color:var(--texto2);margin-top:2px}
+.celda-mes{text-align:center;font-weight:700;font-size:12px}
+.celda-mes.p{color:var(--texto3)}
+.celda-mes.r{color:var(--verde)}
+.celda-mes.vencida{color:var(--rojo)}
+.celda-mes.r-vencida{color:var(--rojo)}
+.resp-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.resp-mtto{background:#EFF6FF;color:#1D4ED8}
+.resp-enc{background:#F0FDF4;color:#15803D}
+.resp-ext{background:#FFF7ED;color:#C2410C}
+.resp-sis{background:#FAF5FF;color:#7C3AED}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.hidden{display:none}
+.modal-box{background:var(--blanco);border-radius:var(--r);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--borde);position:sticky;top:0;background:var(--blanco);z-index:1}
+.modal-title{font-size:14px;font-weight:700}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--texto2);padding:2px}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--borde);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--blanco)}
+
+/* ACT DETAIL */
+.act-info-card{background:var(--fondo);border-radius:var(--rs);padding:12px 14px;margin-bottom:16px}
+.act-info-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.act-info-row{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--texto2)}
+.guia-section{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs);padding:12px 14px;margin-bottom:16px}
+.guia-title{font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.guia-text{font-size:12px;color:#78350F;line-height:1.5}
+.foto-drop{border:1.5px dashed var(--borde);border-radius:var(--rs);padding:20px;text-align:center;cursor:pointer;margin-bottom:14px}
+.foto-drop:hover{border-color:var(--acc)}
+.foto-drop i{font-size:24px;color:var(--texto3);display:block;margin-bottom:4px}
+.foto-drop span{font-size:12px;color:var(--texto3)}
+.foto-preview{width:100%;border-radius:var(--rs);margin-bottom:14px;display:block}
+.fecha-auto{background:var(--fondo);border:1px solid var(--borde);border-radius:var(--rs);padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:14px}
+.fecha-auto .tag{margin-left:auto;font-size:10px;color:var(--texto3)}
+.hist-item{padding:10px 0;border-bottom:1px solid var(--borde);font-size:12px}
+.hist-item:last-child{border-bottom:none}
+.hist-fecha{font-weight:600;margin-bottom:2px}
+.hist-meta{color:var(--texto2)}
+
+/* FORMULARIO EXTERNO */
+.ext-estado-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.ext-pendiente{background:#F3F4F6;color:#374151}
+.ext-agendada{background:var(--ambar-light);color:var(--ambar)}
+.ext-ejecutada{background:#DBEAFE;color:#1D4ED8}
+.ext-certificada{background:var(--verde-light);color:var(--verde)}
+
+/* CATÁLOGO EDITOR */
+.cat-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--borde);border-radius:var(--rs);margin-bottom:6px;background:var(--blanco)}
+.cat-item-main{flex:1}
+.cat-item-name{font-size:13px;font-weight:500}
+.cat-item-meta{font-size:11px;color:var(--texto2);margin-top:2px}
+.cat-item-actions{display:flex;gap:4px}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px;color:var(--texto3);font-size:16px;border-radius:4px}
+.icon-btn:hover{background:var(--fondo);color:var(--texto)}
+.icon-btn.danger:hover{color:var(--rojo)}
+.mes-check-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px}
+.mes-check{display:flex;flex-direction:column;align-items:center;gap:3px}
+.mes-check input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--acc)}
+.mes-check label{font-size:10px;color:var(--texto2);cursor:pointer}
+
+/* USUARIOS */
+.user-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--borde);border-radius:var(--rs);margin-bottom:6px;background:var(--blanco)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-size:13px;font-weight:500}
+.user-rol{font-size:11px;color:var(--texto2)}
+
+/* LOADER */
+.loader{display:flex;align-items:center;justify-content:center;padding:60px 20px;color:var(--texto3);flex-direction:column;gap:10px}
+.loader i{font-size:28px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PLANEACION ANUAL */
+.plan-table{width:100%;border-collapse:collapse;font-size:12px}
+.plan-table th{background:var(--fondo);padding:8px 10px;text-align:center;font-weight:600;font-size:11px;border:1px solid var(--borde)}
+.plan-table th:first-child{text-align:left}
+.plan-table td{padding:6px 8px;border:1px solid var(--borde);text-align:center;vertical-align:middle}
+.plan-table td:first-child{text-align:left;font-size:12px}
+.plan-check{width:16px;height:16px;cursor:pointer;accent-color:var(--acc)}
+
+.hidden{display:none!important}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px}
+.badge-rojo{background:var(--rojo-light);color:var(--rojo-dark)}
+.badge-verde{background:var(--verde-light);color:var(--verde)}
+.badge-ambar{background:var(--ambar-light);color:var(--ambar)}
+.badge-gris{background:#F3F4F6;color:#374151}
+.divider{height:1px;background:var(--borde);margin:16px 0}
+.text-sm{font-size:12px}
+.text-xs{font-size:11px}
+.text-muted{color:var(--texto2)}
+.fw-600{font-weight:600}
+.gap-8{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mt-12{margin-top:12px}
+.mb-12{margin-bottom:12px}
+
+/* ── DROPDOWN FILTERS ──────────────────────────────────────────────────────── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.dd-wrap{position:relative;display:inline-block}
+.dd-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid var(--borde);border-radius:var(--rs);background:var(--blanco);font-size:12px;cursor:pointer;color:var(--texto);font-family:inherit;white-space:nowrap}
+.dd-btn.active-filter{border-color:var(--acc);background:#F1EFE8;font-weight:600}
+.dd-btn i{font-size:14px;color:var(--texto3)}
+.dd-btn .dd-arrow{font-size:12px;color:var(--texto3);margin-left:2px}
+.dd-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:50;min-width:180px;padding:8px 0}
+.dd-panel.open{display:block}
+.dd-opt{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:var(--texto);user-select:none}
+.dd-opt:hover{background:var(--fondo)}
+.dd-opt input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.dd-divider{height:1px;background:var(--borde);margin:4px 0}
+.dd-action{padding:6px 12px;font-size:11px;color:var(--acc);cursor:pointer;font-weight:600}
+.dd-action:hover{background:var(--fondo)}
 </style>
 </head>
 <body>
 
+<!-- ── AUTH ─────────────────────────────────────────────────────────────── -->
 <div id="auth">
-  <p class="auth-title" style="font-size:22px;margin-bottom:.25rem;color:var(--acc-dark)">Flecha Preventivo</p>
-  <p class="auth-sub" style="margin-bottom:1.75rem">Sistema de mantenimiento preventivo</p>
-
-  <div class="auth-card hidden" id="seedCard">
-    <p class="auth-title">Primera configuración</p>
-    <p class="auth-sub">No se encontraron usuarios en la base de datos. Crea los usuarios iniciales (Director, Mantenimiento y los 11 Encargados de estación) con un clic.</p>
-    <div class="auth-error" id="seedError"></div>
-    <button class="btn" id="btnSeed">
-      <i class="ti ti-database-plus" aria-hidden="true"></i>
-      Crear usuarios iniciales
-    </button>
-  </div>
-
-  <div class="auth-card" id="loginCard">
-    <p class="auth-title">¿Quién eres?</p>
-    <p class="auth-sub">Selecciona tu perfil para continuar</p>
-    <div class="auth-error" id="authError">Usuario o contraseña incorrectos.</div>
-    <div class="fl">
-      <label for="selUsuario">Usuario</label>
-      <select id="selUsuario">
-        <option value="">— Selecciona —</option>
-      </select>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <i class="ti ti-tool" aria-hidden="true"></i>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--acc)">Flecha Preventivo</div>
+        <div style="font-size:11px;color:var(--texto2)">Sistema de mantenimiento preventivo</div>
+      </div>
     </div>
-    <div class="fl">
-      <label for="inpPass">Contraseña</label>
-      <input type="password" id="inpPass" placeholder="••••••">
+
+    <!-- SEED CARD -->
+    <div id="seedCard" class="hidden">
+      <div class="auth-title">Primera configuración</div>
+      <div class="auth-sub">No se encontraron usuarios. Inicializa el sistema con un clic.</div>
+      <div class="err-box" id="seedErr"></div>
+      <button class="btn btn-primary" id="btnSeed">
+        <i class="ti ti-database-plus" aria-hidden="true"></i> Inicializar sistema
+      </button>
     </div>
-    <button class="btn" id="btnEntrar">
-      <i class="ti ti-login-2" aria-hidden="true"></i>
-      Entrar
-    </button>
-    <button id="btnResetUsuarios" style="width:100%;background:none;border:none;color:var(--g500);font-size:12px;margin-top:14px;cursor:pointer;text-decoration:underline;">
-      Actualizar lista de usuarios
-    </button>
+
+    <!-- LOGIN CARD -->
+    <div id="loginCard" class="hidden">
+      <div class="auth-title">Iniciar sesión</div>
+      <div class="auth-sub">Selecciona tu usuario y escribe tu contraseña</div>
+      <div class="err-box" id="loginErr"></div>
+      <div class="field">
+        <label for="selUser">Usuario</label>
+        <select id="selUser"><option value="">— Selecciona —</option></select>
+      </div>
+      <div class="field">
+        <label for="inpPass">Contraseña</label>
+        <input type="password" id="inpPass" placeholder="••••••">
+      </div>
+      <button class="btn btn-primary" id="btnLogin">
+        <i class="ti ti-login-2" aria-hidden="true"></i> Entrar
+      </button>
+      <button class="link-btn" id="btnActualizar">Actualizar lista de usuarios</button>
+    </div>
   </div>
 </div>
 
-<div id="app" class="hidden">
-  <div id="header">
-    <div>
-      <div class="titulo" id="hdrTitulo">Flecha Preventivo</div>
-      <div class="sub" id="hdrSub">—</div>
+<!-- ── LAYOUT ─────────────────────────────────────────────────────────── -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">
+        <i class="ti ti-tool" style="color:#fff;font-size:18px" aria-hidden="true"></i>
+        <div>
+          <div class="sb-logo-text">Flecha Preventivo</div>
+          <div class="sb-logo-sub">Mantenimiento preventivo</div>
+        </div>
+      </div>
     </div>
-    <button class="logout" id="btnSalir" aria-label="Cerrar sesión">
-      <i class="ti ti-logout" aria-hidden="true"></i>
-    </button>
+    <div class="sb-user">
+      <div class="sb-user-name" id="sbNombre">—</div>
+      <div class="sb-user-rol" id="sbRol">—</div>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-footer">
+      <button class="sb-logout" id="btnLogout">
+        <i class="ti ti-logout" aria-hidden="true"></i> Cerrar sesión
+      </button>
+    </div>
   </div>
 
-  <div id="main">
-    <div class="placeholder">
-      <i class="ti ti-tools" aria-hidden="true"></i>
-      <p>Esqueleto base conectado a Firebase.<br>Las pantallas funcionales se construyen en los siguientes pasos.</p>
+  <!-- OVERLAY MOBILE -->
+  <div id="sb-overlay"></div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div id="topbar">
+      <button id="hamburger" aria-label="Menú"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      <div id="topbar-title">—</div>
+      <div id="topbar-sub" id="topbarSub"></div>
     </div>
+    <div id="page"><div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div></div>
   </div>
 
-  <div id="bottomnav">
-    <button class="navitem active"><i class="ti ti-home" aria-hidden="true"></i><span>Inicio</span></button>
-    <button class="navitem"><i class="ti ti-calendar" aria-hidden="true"></i><span>Programa</span></button>
-    <button class="navitem"><i class="ti ti-truck-delivery" aria-hidden="true"></i><span>Externos</span></button>
+  <!-- BOTTOM NAV -->
+  <div id="bottomnav"><div class="bn-items" id="bnItems"></div></div>
+</div>
+
+<!-- ── MODALES ─────────────────────────────────────────────────────────── -->
+
+<!-- Modal actividad (ejecución) -->
+<div class="modal-overlay hidden" id="modalAct">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalActTitle">Actividad</div>
+      <button class="modal-close" id="modalActClose"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body" id="modalActBody"></div>
+    <div class="modal-footer" id="modalActFooter"></div>
+  </div>
+</div>
+
+<!-- Modal editar actividad catálogo -->
+<div class="modal-overlay hidden" id="modalEdit">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalEditTitle">Editar actividad</div>
+      <button class="modal-close" id="modalEditClose"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body" id="modalEditBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btnEditCancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnEditSave"><i class="ti ti-check" aria-hidden="true"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cambiar contraseña -->
+<div class="modal-overlay hidden" id="modalPass">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title">Cambiar contraseña</div>
+      <button class="modal-close" id="modalPassClose"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="err-box" id="passErr"></div>
+      <div class="field"><label>Usuario</label><div id="passUserLabel" style="font-size:13px;padding:4px 0;font-weight:600"></div></div>
+      <div class="field"><label for="passNew">Nueva contraseña</label><input type="password" id="passNew" placeholder="Mínimo 4 caracteres"></div>
+      <div class="field"><label for="passConf">Confirmar contraseña</label><input type="password" id="passConf" placeholder="Repite la contraseña"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btnPassCancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnPassSave"><i class="ti ti-check" aria-hidden="true"></i> Guardar</button>
+    </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, set, update, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB8-Rl611KVRVGpAu2ZHkNsCuAdtEtmx8",
-  authDomain: "flecha-preventivo.firebaseapp.com",
-  databaseURL: "https://flecha-preventivo-default-rtdb.firebaseio.com",
-  projectId: "flecha-preventivo",
-  storageBucket: "flecha-preventivo.firebasestorage.app",
-  messagingSenderId: "158139144954",
-  appId: "1:158139144954:web:2b10e4e255b5f0652c8743"
+const FB = { apiKey:"AIzaSyB8-Rl611KVRVGpAu2ZHkNsCuAdtEtmx8", authDomain:"flecha-preventivo.firebaseapp.com", databaseURL:"https://flecha-preventivo-default-rtdb.firebaseio.com", projectId:"flecha-preventivo", storageBucket:"flecha-preventivo.firebasestorage.app", messagingSenderId:"158139144954", appId:"1:158139144954:web:2b10e4e255b5f0652c8743" };
+const app = initializeApp(FB);
+const db  = getDatabase(app);
+const r   = (...p) => ref(db, p.join('/'));
+
+// ── SEED DATA ──────────────────────────────────────────────────────────────
+const MESES = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+const TODOS = [1,2,3,4,5,6,7,8,9,10,11,12];
+
+const USUARIOS_SEED = {
+  "director":      { nombre:"Francisco",                rol:"director",      pass:"12345" },
+  "santiago":      { nombre:"Santiago Meza",            rol:"santiago",      pass:"12345" },
+  "sup-dayanara":  { nombre:"Dayanara Castillo",        rol:"supervisor",    pass:"12345" },
+  "sup-juanma":    { nombre:"Juan Manuel Osuna",        rol:"supervisor",    pass:"12345" },
+  "sup-edgar":     { nombre:"Edgar Navarro",            rol:"supervisor",    pass:"12345" },
+  "tec-armando":   { nombre:"Jesús Armando Valladolid", rol:"mantenimiento", pass:"12345" },
+  "tec-martin":    { nombre:"Martin Gonzalez",          rol:"mantenimiento", pass:"12345" },
+  "tec-joseluis":  { nombre:"José Luis Flores",         rol:"mantenimiento", pass:"12345" },
+  "tec-enrique":   { nombre:"Enrique Valle",            rol:"mantenimiento", pass:"12345" },
+  "enc-estadio":   { nombre:"Estadio",                  rol:"encargado",     estacionId:"estadio",   pass:"12345" },
+  "enc-batuecas":  { nombre:"Batuecas",                 rol:"encargado",     estacionId:"batuecas",  pass:"12345" },
+  "enc-petrolera": { nombre:"Petrolera",                rol:"encargado",     estacionId:"petrolera", pass:"12345" },
+  "enc-corsario":  { nombre:"Corsario",                 rol:"encargado",     estacionId:"corsario",  pass:"12345" },
+  "enc-sc":        { nombre:"San Carlos",               rol:"encargado",     estacionId:"sc",        pass:"12345" },
+  "enc-mg":        { nombre:"MG",                       rol:"encargado",     estacionId:"mg",        pass:"12345" },
+  "enc-sangerman": { nombre:"San Germán",               rol:"encargado",     estacionId:"sangerman", pass:"12345" },
+  "enc-lomalinda": { nombre:"Loma Linda",               rol:"encargado",     estacionId:"lomalinda", pass:"12345" },
+  "enc-valiente":  { nombre:"Valiente",                 rol:"encargado",     estacionId:"valiente",  pass:"12345" },
+  "enc-obelisco":  { nombre:"Obelisco",                 rol:"encargado",     estacionId:"obelisco",  pass:"12345" },
+  "enc-miramar":   { nombre:"Miramar",                  rol:"encargado",     estacionId:"miramar",   pass:"12345" }
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
+const ESTACIONES_SEED = {
+  estadio:   { nombre:"Estadio" },
+  batuecas:  { nombre:"Batuecas" },
+  petrolera: { nombre:"Petrolera" },
+  corsario:  { nombre:"Corsario" },
+  sc:        { nombre:"San Carlos" },
+  mg:        { nombre:"MG" },
+  sangerman: { nombre:"San Germán" },
+  lomalinda: { nombre:"Loma Linda" },
+  valiente:  { nombre:"Valiente", extras:["gen-energia","paneles-solares"] },
+  obelisco:  { nombre:"Obelisco" },
+  miramar:   { nombre:"Miramar" }
+};
 
+const CATALOGO_SEED = {
+  // ── MENSUALES ──────────────────────────────────────────────────────────
+  "fug-conect-flex":  { nombre:"Revisión de fugas en conectores flexibles de tubería de contenedores.",          freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "rev-bateria-disp": { nombre:"Revisión de batería de dispensarios.",                                           freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:false, categoria:"Dispensarios",               guia:""  },
+  "tierra-fisica":    { nombre:"Revisión y limpieza de tierras físicas en general.",                             freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "caj-interfaz":     { nombre:"Realizar mantenimiento a cajas de INTERFAZ y regulador.",                        freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:false, categoria:"Dispensarios",               guia:""  },
+  "sumergibles":      { nombre:"Revisión y limpieza de sumergibles, libre de fugas y revisión de contenedor.",   freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "cont-derrames":    { nombre:"Revisión y limpieza de contenedores de derrames de boquillas de llenado.",       freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "herm-cont-disp":   { nombre:"Limpieza y revisión de hermeticidad de contenedores de dispensario.",            freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Dispensarios",               guia:""  },
+  "drenado-tanques":  { nombre:"Drenado de tanques (cuando se requiera).",                                       freq:"Mensual", meses:[],            responsable:"mantenimiento", critica:false, categoria:"Tanques y contenedores",     guia:""  },
+  "inv-veeder":       { nombre:"Control de inventarios RSCI1 y revisión de print de Veeder Root.",               freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:true,  categoria:"Sistemas y normativa",       guia:""  },
+  "burreras":         { nombre:"Revisar elementos protectores de módulos de despacho. (Burreras)",               freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "contra-incendio":  { nombre:"Revisión de equipos contra incendio RECI1.",                                     freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:true,  categoria:"Seguridad y emergencias",    guia:""  },
+  "reg-tapas-tanq":   { nombre:"Revisión y limpieza de registros y tapas en boquillas de tanques. RRTT1",        freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:false, categoria:"Tanques y contenedores",     guia:""  },
+  "cloracion":        { nombre:"Cloración de cisterna y revisión del nivel de cloración.",                       freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:false, categoria:"Cuarto de máquinas",         guia:""  },
+  "det-humo":         { nombre:"Revisión de detectores de humo.",                                                freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Seguridad y emergencias",    guia:""  },
+  "lamp-emergencia":  { nombre:"Revisión de funcionamiento de lámparas de emergencia.",                          freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Seguridad y emergencias",    guia:""  },
+  "eq-descarga":      { nombre:"Revisión de equipo de descarga de combustible.",                                 freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "disp-islas":       { nombre:"Revisión de dispensarios islas RDIS1.",                                          freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:false, categoria:"Dispensarios",               guia:""  },
+  "det-fugas-balance":{ nombre:"Programa de detección de fugas y derrames (balance de producto).",               freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "ajuste-medidores": { nombre:"Revisión y ajuste de medidores a dispensarios (Interno).",                       freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:false, categoria:"Dispensarios",               guia:""  },
+  "paros-emergencia": { nombre:"Revisión del funcionamiento de todos los paros de emergencia y contacto.",       freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Seguridad y emergencias",    guia:""  },
+  "luminarias":       { nombre:"Revisión de luminarias de techumbre, barda perimetral, oficina y postes.",       freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "pozos-obs":        { nombre:"Revisión de pozos de observación.",                                              freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "drenaje-trampas":  { nombre:"Revisión del sistema de drenaje y trampas de combustibles y grasas.",            freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "areas-verdes":     { nombre:"Realizar inspección y limpieza de áreas verdes en general.",                     freq:"Mensual", meses:TODOS,         responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "det-elec-fugas":   { nombre:"Revisión del sistema de detección electrónica de fugas (sensores).",             freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "shut-off":         { nombre:"Revisión de fugas y funcionamiento de válvula de corte rápido Shut-off.",        freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Dispensarios",               guia:""  },
+  "fumigacion":       { nombre:"Fumigación en general de la estación.",                                          freq:"Mensual", meses:TODOS,         responsable:"externo",       critica:false, categoria:"Piso de venta",              guia:""  },
+  "alarma-incendio":  { nombre:"Revisión de funcionamiento de alarma contra incendio.",                          freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", critica:true,  categoria:"Seguridad y emergencias",    guia:""  },
+  "hidroneumatico":   { nombre:"Revisión de equipo hidroneumático.",                                             freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", tambienEncargado:true, critica:false, categoria:"Cuarto de máquinas",  guia:""  },
+  "compresores":      { nombre:"Revisión de compresores.",                                                       freq:"Mensual", meses:TODOS,         responsable:"mantenimiento", tambienEncargado:true, critica:false, categoria:"Cuarto de máquinas",  guia:""  },
+  // ── TRIMESTRALES ───────────────────────────────────────────────────────
+  "ventilacion-ac":   { nombre:"Ventilación artificial y AC RVAC3.",                                             freq:"Trimestral", meses:[3,6,9,12], responsable:"mantenimiento", critica:false, categoria:"Cuarto de máquinas",         guia:""  },
+  "pavimentos":       { nombre:"Pavimentos y pisos en general.",                                                 freq:"Trimestral", meses:[3,6,9,12], responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "limp-ecologica":   { nombre:"Limpieza ecológica.",                                                            freq:"Trimestral", meses:[3,6,9,12], responsable:"mantenimiento", critica:false, categoria:"Piso de venta",              guia:""  },
+  // ── CUATRIMESTRALES ────────────────────────────────────────────────────
+  "senialamientos":   { nombre:"Señalamientos y marcajes.",                                                      freq:"Cuatrimestral", meses:[3,7,11],  responsable:"encargado",     critica:false, categoria:"Piso de venta",              guia:""  },
+  "filtros-disp":     { nombre:"Cambio de filtros de gasolina y diésel a dispensarios.",                         freq:"Cuatrimestral", meses:[3,7,11],  responsable:"mantenimiento", critica:false, categoria:"Dispensarios",               guia:""  },
+  "limp-faldones":    { nombre:"Realizar limpieza de faldones y marquesinas (Uso de genie).",                    freq:"Cuatrimestral", meses:[2,6,10],  responsable:"mantenimiento", critica:false, categoria:"Piso de venta",              guia:""  },
+  "limp-anuncio":     { nombre:"Realizar limpieza general de anuncio institucional (Uso de genie).",             freq:"Cuatrimestral", meses:[2,6,10],  responsable:"mantenimiento", critica:false, categoria:"Piso de venta",              guia:""  },
+  "limp-techumbres":  { nombre:"Realizar limpieza de techumbres y lámparas (Uso de genie).",                     freq:"Cuatrimestral", meses:[2,6,10],  responsable:"mantenimiento", critica:false, categoria:"Piso de venta",              guia:""  },
+  // ── SEMESTRALES ────────────────────────────────────────────────────────
+  "estructuras":      { nombre:"Revisión de estructuras y edificaciones.",                                       freq:"Semestral", meses:[6,12],      responsable:"encargado",     critica:false, categoria:"Edificio",                   guia:""  },
+  "inst-elec-tanq":   { nombre:"Revisar instalaciones eléctricas en contenedores de tanques.",                   freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "inst-elec-sem":    { nombre:"Instalaciones eléctricas (Verificación semestral).",                             freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "veeder-root":      { nombre:"Revisión y mantenimiento a Veeder Root.",                                        freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Sistemas y normativa",       guia:""  },
+  "vent-presion-pos": { nombre:"Inspección del sistema de ventilación de presión positiva.",                     freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "valvulas-venteo":  { nombre:"Inspección de válvulas de venteo o presión vacío.",                              freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "reg-tapas-tub":    { nombre:"Revisión de fugas en registros y tapas para cambio de tuberías.",                freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "computo":          { nombre:"Mantenimiento de equipo cómputo y electrónico en general.",                      freq:"Semestral", meses:[4,10],      responsable:"sistemas",      critica:false, categoria:"Sistemas y normativa",       guia:""  },
+  "bomba-agua":       { nombre:"Realizar mantenimiento de bomba de agua.",                                       freq:"Semestral", meses:[6,12],      responsable:"mantenimiento", critica:false, categoria:"Cuarto de máquinas",         guia:""  },
+  "calib-disp":       { nombre:"Revisión y calibración de dispensarios (externo).",                              freq:"Semestral", meses:[2,8],       responsable:"externo",       critica:true,  categoria:"Dispensarios",               guia:""  },
+  "anclaje-disp":     { nombre:"Inspección del anclaje a basamento de dispensarios.",                            freq:"Semestral", meses:[1,6],       responsable:"mantenimiento", critica:false, categoria:"Dispensarios",               guia:""  },
+  "lab-combustible":  { nombre:"Pruebas de laboratorio al combustible.",                                         freq:"Semestral", meses:[1,6],       responsable:"externo",       critica:false, categoria:"Sistemas y normativa",       guia:""  },
+  // ── ANUALES ────────────────────────────────────────────────────────────
+  "hermeticidad":     { nombre:"Pruebas de hermeticidad (Verificación anual).",                                  freq:"Anual", meses:[6],          responsable:"externo",       critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "azoteas":          { nombre:"Limpieza y mantenimiento de azoteas, canaletas y bajadas.",                      freq:"Anual", meses:[3],          responsable:"mantenimiento", critica:false, categoria:"Edificio",                   guia:""  },
+  "oxidacion-met":    { nombre:"Comprobar elementos metálicos sin oxidación y funcionamiento de puertas/ventanas.", freq:"Anual", meses:[3],        responsable:"mantenimiento", critica:false, categoria:"Edificio",                   guia:""  },
+  "imper-edificios":  { nombre:"Revisión y mantenimiento a impermeabilización de edificios y techumbres.",       freq:"Anual", meses:[4],          responsable:"mantenimiento", critica:false, categoria:"Edificio",                   guia:""  },
+  "mtto-edificios":   { nombre:"Mantenimiento a edificios (Fisuras, agrietamiento, pintura).",                   freq:"Anual", meses:[2],          responsable:"externo",       critica:false, categoria:"Edificio",                   guia:""  },
+  "mtto-casetas":     { nombre:"Mantenimiento a casetas (Fisuras, agrietamiento, pintura).",                     freq:"Anual", meses:[2],          responsable:"externo",       critica:false, categoria:"Edificio",                   guia:""  },
+  "subestacion":      { nombre:"Mantenimiento a subestación eléctrica.",                                         freq:"Anual", meses:[6],          responsable:"externo",       critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "sellos-eys":       { nombre:"Revisión de sellos EYS y cajas de conexión a pruebas de exposición.",           freq:"Anual", meses:[6],          responsable:"mantenimiento", critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "botas":            { nombre:"Revisión de condiciones de botas (abrazadera, tornillería completa).",           freq:"Anual", meses:[6],          responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "juntas-expansion": { nombre:"Revisión de fugas en juntas de expansión (mangueras metálicas flexibles).",      freq:"Anual", meses:[6],          responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "transformador":    { nombre:"Revisión de transformador (presión, temperatura, nivel, voltaje, amperaje).",    freq:"Anual", meses:[4],          responsable:"externo",       critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "prot-catodica":    { nombre:"Protección catódica (Tierra física limpia y libre de pintura).",                 freq:"Anual", meses:[8],          responsable:"externo",       critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "med-tierras":      { nombre:"Realizar medición del sistema de tierras.",                                      freq:"Anual", meses:[8],          responsable:"externo",       critica:true,  categoria:"Instalaciones eléctricas",   guia:""  },
+  "detector-fugas":   { nombre:"Revisión del estado de detector de fugas.",                                      freq:"Anual", meses:[6],          responsable:"mantenimiento", critica:true,  categoria:"Tanques y contenedores",     guia:""  },
+  "nom005":           { nombre:"Revisión de NOM-005-ASEA-2016.",                                                 freq:"Anual", meses:[10],         responsable:"externo",       critica:true,  categoria:"Sistemas y normativa",       guia:""  },
+  // ── EXCLUSIVAS VALIENTE ───────────────────────────────────────────────
+  "gen-energia":      { nombre:"Revisión de generador de energía.",                                              freq:"Mensual", meses:TODOS,       responsable:"mantenimiento", critica:true,  categoria:"Cuarto de máquinas",         guia:"", soloEstacion:"valiente" },
+  "paneles-solares":  { nombre:"Mantenimiento a paneles solares (limpieza de placas).",                          freq:"Mensual", meses:TODOS,       responsable:"mantenimiento", critica:false, categoria:"Cuarto de máquinas",         guia:"", soloEstacion:"valiente" },
+};
+
+// ── GLOBALS ────────────────────────────────────────────────────────────────
+let USER = null;
 let USUARIOS = {};
-let usuarioActual = null;
+let CATALOGO = {};
+let ESTACIONES = {};
+let vistaActual = null;
+let editCtx = null;
+let passCtx  = null;
+let fotoB64  = null;
+const ANIO   = new Date().getFullYear();
 
-const ROL_LABEL = {
-  director: "Director",
-  mantenimiento: "Mantenimiento",
-  encargado: "Encargado de estación"
-};
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const q = sel => document.querySelector(sel);
+const html = s => { const d = document.createElement('div'); d.innerHTML = s; return d.firstElementChild; }
 
-const USUARIOS_INICIALES = {
-  "director": { nombre: "Francisco", rol: "director", pass: "12345" },
-  "santiago": { nombre: "Santiago Meza", rol: "mantenimiento", pass: "12345" },
-  "tec-armando": { nombre: "Jesús Armando Valladolid", rol: "mantenimiento", pass: "12345" },
-  "tec-martin": { nombre: "Martin Gonzalez", rol: "mantenimiento", pass: "12345" },
-  "tec-joseluis": { nombre: "José Luis Flores", rol: "mantenimiento", pass: "12345" },
-  "tec-enrique": { nombre: "Enrique Valle", rol: "mantenimiento", pass: "12345" },
-  "enc-estadio": { nombre: "Estadio", rol: "encargado", estacionId: "estadio", pass: "12345" },
-  "enc-batuecas": { nombre: "Batuecas", rol: "encargado", estacionId: "batuecas", pass: "12345" },
-  "enc-petrolera": { nombre: "Petrolera", rol: "encargado", estacionId: "petrolera", pass: "12345" },
-  "enc-corsario": { nombre: "Corsario", rol: "encargado", estacionId: "corsario", pass: "12345" },
-  "enc-sc": { nombre: "San Carlos", rol: "encargado", estacionId: "sc", pass: "12345" },
-  "enc-mg": { nombre: "MG", rol: "encargado", estacionId: "mg", pass: "12345" },
-  "enc-sangerman": { nombre: "San Germán", rol: "encargado", estacionId: "sangerman", pass: "12345" },
-  "enc-lomalinda": { nombre: "Loma Linda", rol: "encargado", estacionId: "lomalinda", pass: "12345" },
-  "enc-valiente": { nombre: "Valiente", rol: "encargado", estacionId: "valiente", pass: "12345" },
-  "enc-obelisco": { nombre: "Obelisco", rol: "encargado", estacionId: "obelisco", pass: "12345" },
-  "enc-miramar": { nombre: "Miramar", rol: "encargado", estacionId: "miramar", pass: "12345" }
-};
+const ROL_LABEL = { director:"Director", santiago:"Gerente Mantenimiento", supervisor:"Supervisor", mantenimiento:"Mantenimiento", encargado:"Encargado de estación" };
+const FREQ_ORDER = { Mensual:1, Trimestral:2, Cuatrimestral:3, Semestral:4, Anual:5 };
+const RESP_CLASS = { mantenimiento:"resp-mtto", encargado:"resp-enc", externo:"resp-ext", sistemas:"resp-sis" };
+const RESP_LABEL = { mantenimiento:"Mantenimiento", encargado:"Encargado", externo:"Externo", sistemas:"Sistemas" };
 
-async function cargarUsuarios() {
-  const snap = await get(ref(db, "usuarios"));
-  USUARIOS = snap.exists() ? snap.val() : {};
+function normalizar(s) {
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
 
-  if (!snap.exists() || Object.keys(USUARIOS).length === 0) {
-    document.getElementById("seedCard").classList.remove("hidden");
-    document.getElementById("loginCard").classList.add("hidden");
-    return;
+function puede(accion) {
+  const rol = USER?.rol;
+  if (!rol) return false;
+  const admin = ['director','santiago'].includes(rol);
+  const sup   = ['director','santiago','supervisor'].includes(rol);
+  if (accion === 'editarCatalogo') return admin;
+  if (accion === 'editarEjecucion') return sup;
+  if (accion === 'gestionarUsuarios') return admin;
+  if (accion === 'planificar') return admin;
+  return true;
+}
+
+function fmtFecha(ms) {
+  if (!ms) return '—';
+  const d = new Date(ms);
+  const meses = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  let h = d.getHours(), am = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}, ${h}:${String(d.getMinutes()).padStart(2,'0')} ${am}`;
+}
+
+function mesLabel(n) { return MESES[n-1] || ''; }
+
+function semaforo(pct) {
+  if (pct === null) return 'sin-datos';
+  if (pct >= 85) return 'verde';
+  if (pct >= 60) return 'ambar';
+  return 'rojo';
+}
+
+function respTag(resp, tambienEncargado) {
+  if (tambienEncargado) {
+    return `<span class="resp-tag resp-mtto">Mtto</span> <span style="color:var(--texto3);font-size:10px">/</span> <span class="resp-tag resp-enc">Enc.</span>`;
   }
+  return `<span class="resp-tag ${RESP_CLASS[resp]||'resp-mtto'}">${RESP_LABEL[resp]||resp}</span>`;
+}
 
-  document.getElementById("seedCard").classList.add("hidden");
-  document.getElementById("loginCard").classList.remove("hidden");
+// ── FIREBASE HELPERS ───────────────────────────────────────────────────────
+async function dbGet(path) {
+  const s = await get(r(path));
+  return s.exists() ? s.val() : null;
+}
 
-  const sel = document.getElementById("selUsuario");
+async function dbSet(path, val) { await set(r(path), val); }
+async function dbUpd(path, val) { await update(r(path), val); }
+
+// ── AUTH ───────────────────────────────────────────────────────────────────
+async function cargarUsuariosAuth() {
+  const data = await dbGet('usuarios');
+  USUARIOS = data || {};
+  const sel = $('selUser');
   sel.innerHTML = '<option value="">— Selecciona —</option>';
-
-  const grupos = { director: [], mantenimiento: [], encargado: [] };
-  Object.entries(USUARIOS).forEach(([id, u]) => {
-    if (grupos[u.rol]) grupos[u.rol].push([id, u]);
-  });
-
-  const ordenGrupos = [
-    ["director", "Dirección"],
-    ["mantenimiento", "Mantenimiento"],
-    ["encargado", "Estaciones"]
-  ];
-
-  ordenGrupos.forEach(([rolKey, label]) => {
-    if (!grupos[rolKey].length) return;
-    const og = document.createElement("optgroup");
-    og.label = label;
-    grupos[rolKey].forEach(([id, u]) => {
-      const opt = document.createElement("option");
-      opt.value = id;
-      opt.textContent = u.nombre;
-      og.appendChild(opt);
+  const grupos = { director:[], santiago:[], supervisor:[], mantenimiento:[], encargado:[] };
+  Object.entries(USUARIOS).forEach(([id, u]) => { if (grupos[u.rol]) grupos[u.rol].push([id,u]); });
+  const labels = { director:'Dirección', santiago:'Gerencia Mantenimiento', supervisor:'Supervisores', mantenimiento:'Mantenimiento', encargado:'Estaciones' };
+  Object.entries(labels).forEach(([rol, lbl]) => {
+    if (!grupos[rol].length) return;
+    const og = document.createElement('optgroup');
+    og.label = lbl;
+    grupos[rol].forEach(([id,u]) => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = u.nombre;
+      og.appendChild(o);
     });
     sel.appendChild(og);
   });
 }
 
-document.getElementById("btnSeed").addEventListener("click", async () => {
-  const btn = document.getElementById("btnSeed");
-  const errBox = document.getElementById("seedError");
-  errBox.classList.remove("show");
-  btn.disabled = true;
-  btn.textContent = "Creando...";
+async function initAuth() {
+  const data = await dbGet('usuarios');
+  if (!data || !Object.keys(data).length) {
+    $('seedCard').classList.remove('hidden');
+    $('loginCard').classList.add('hidden');
+  } else {
+    USUARIOS = data;
+    $('seedCard').classList.add('hidden');
+    $('loginCard').classList.remove('hidden');
+    await cargarUsuariosAuth();
+    const saved = sessionStorage.getItem('fp_uid');
+    if (saved && USUARIOS[saved]) { USER = { id:saved, ...USUARIOS[saved] }; entrarApp(); }
+  }
+}
 
+$('btnSeed').addEventListener('click', async () => {
+  const btn = $('btnSeed');
+  btn.disabled = true; btn.textContent = 'Inicializando...';
   try {
-    await set(ref(db, "usuarios"), USUARIOS_INICIALES);
-    await cargarUsuarios();
-  } catch (e) {
-    errBox.textContent = "No se pudo escribir en la base de datos. Revisa las reglas de Firebase (debe estar en modo de prueba).";
-    errBox.classList.add("show");
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-database-plus" aria-hidden="true"></i> Crear usuarios iniciales';
+    await dbSet('usuarios', USUARIOS_SEED);
+    await dbSet('estaciones', Object.fromEntries(Object.entries(ESTACIONES_SEED).map(([k,v])=>[k,{nombre:v.nombre}])));
+    await dbSet('catalogo', CATALOGO_SEED);
+    await initAuth();
+  } catch(e) {
+    const err = $('seedErr'); err.textContent = e.message; err.classList.add('show');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-database-plus"></i> Inicializar sistema';
   }
 });
 
-document.getElementById("btnResetUsuarios").addEventListener("click", async () => {
-  const ok = confirm("Esto actualizará los nombres de usuario a la versión más reciente (sin nombres de personas en las estaciones). Las contraseñas que ya hayas cambiado manualmente se mantendrán si el usuario ya existe. ¿Continuar?");
-  if (!ok) return;
-
-  const btn = document.getElementById("btnResetUsuarios");
-  btn.textContent = "Actualizando...";
-
-  try {
-    const fusion = {};
-    Object.entries(USUARIOS_INICIALES).forEach(([id, datosNuevos]) => {
-      const existente = USUARIOS[id];
-      fusion[id] = {
-        ...datosNuevos,
-        pass: existente && existente.pass ? existente.pass : datosNuevos.pass
-      };
-    });
-    await set(ref(db, "usuarios"), fusion);
-    await cargarUsuarios();
-    btn.textContent = "Lista actualizada ✓";
-    setTimeout(() => { btn.textContent = "Actualizar lista de usuarios"; }, 2500);
-  } catch (e) {
-    btn.textContent = "Error al actualizar, intenta de nuevo";
-  }
-});
-
-document.getElementById("btnEntrar").addEventListener("click", async () => {
-  const id = document.getElementById("selUsuario").value;
-  const pass = document.getElementById("inpPass").value;
-  const errBox = document.getElementById("authError");
-  errBox.classList.remove("show");
-
-  if (!id || !pass) {
-    errBox.textContent = "Selecciona tu usuario y escribe tu contraseña.";
-    errBox.classList.add("show");
-    return;
-  }
-
+$('btnLogin').addEventListener('click', async () => {
+  const id = $('selUser').value, pass = $('inpPass').value;
+  const err = $('loginErr'); err.classList.remove('show');
+  if (!id || !pass) { err.textContent = 'Selecciona usuario y escribe tu contraseña.'; err.classList.add('show'); return; }
   const u = USUARIOS[id];
-  if (!u || u.pass !== pass) {
-    errBox.textContent = "Usuario o contraseña incorrectos.";
-    errBox.classList.add("show");
+  if (!u || u.pass !== pass) { err.textContent = 'Contraseña incorrecta.'; err.classList.add('show'); return; }
+  USER = { id, ...u };
+  sessionStorage.setItem('fp_uid', id);
+  entrarApp();
+});
+
+$('btnActualizar').addEventListener('click', async () => {
+  const btn = $('btnActualizar'); btn.textContent = 'Actualizando...';
+  const data = await dbGet('usuarios');
+  if (data) { USUARIOS = data; await cargarUsuariosAuth(); btn.textContent = 'Lista actualizada ✓'; setTimeout(()=>{ btn.textContent='Actualizar lista de usuarios'; },2000); }
+});
+
+// ── APP ENTRY ──────────────────────────────────────────────────────────────
+async function entrarApp() {
+  $('auth').style.display = 'none';
+  $('layout').classList.add('visible');
+  $('sbNombre').textContent = USER.nombre;
+  $('sbRol').textContent = ROL_LABEL[USER.rol] || USER.rol;
+  ESTACIONES = await dbGet('estaciones') || {};
+  CATALOGO   = await dbGet('catalogo')   || {};
+  construirNav();
+  navegarA(vistaInicial());
+}
+
+function vistaInicial() {
+  const rol = USER.rol;
+  if (['director','santiago','supervisor'].includes(rol)) return 'semaforo';
+  if (rol === 'mantenimiento') return 'programa-mtto';
+  if (rol === 'encargado') return 'programa-enc';
+  return 'semaforo';
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function construirNav() {
+  const rol = USER.rol;
+  const admin = ['director','santiago'].includes(rol);
+  const items = [];
+  if (['director','santiago','supervisor'].includes(rol)) {
+    items.push({ id:'semaforo', icon:'ti-layout-dashboard', label:'Dashboard' });
+  }
+  if (rol === 'encargado') {
+    items.push({ id:'programa-enc', icon:'ti-clipboard-list', label:'Mi programa' });
+  }
+  if (rol === 'mantenimiento') {
+    items.push({ id:'programa-mtto', icon:'ti-clipboard-list', label:'Mis actividades' });
+  }
+  items.push({ id:'programa-todas', icon:'ti-table', label:'Programa completo' });
+  if (rol === 'externo' || true) { /* todos pueden ver externos */ }
+  items.push({ id:'externos', icon:'ti-truck-delivery', label:'Externos' });
+  if (admin) {
+    items.push({ id:'catalogo', icon:'ti-database', label:'Catálogo', section:'Administración' });
+    items.push({ id:'planeacion', icon:'ti-calendar-event', label:'Planeación anual' });
+    items.push({ id:'usuarios', icon:'ti-users', label:'Usuarios' });
+  }
+
+  // Sidebar
+  const nav = $('sbNav');
+  nav.innerHTML = '';
+  let lastSection = null;
+  items.forEach(item => {
+    if (item.section && item.section !== lastSection) {
+      const sec = document.createElement('div');
+      sec.className = 'sb-section'; sec.textContent = item.section;
+      nav.appendChild(sec); lastSection = item.section;
+    }
+    const btn = document.createElement('button');
+    btn.className = 'sb-item'; btn.setAttribute('data-vista', item.id);
+    btn.innerHTML = `<i class="ti ${item.icon}" aria-hidden="true"></i>${item.label}`;
+    btn.addEventListener('click', () => { navegarA(item.id); cerrarSidebarMovil(); });
+    nav.appendChild(btn);
+  });
+
+  // Bottom nav (max 4 items)
+  const bn = $('bnItems');
+  bn.innerHTML = '';
+  items.slice(0,4).forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'bn-item'; btn.setAttribute('data-vista', item.id);
+    btn.innerHTML = `<i class="ti ${item.icon}" aria-hidden="true"></i><span>${item.label}</span>`;
+    btn.addEventListener('click', () => navegarA(item.id));
+    bn.appendChild(btn);
+  });
+}
+
+function navegarA(vistaId) {
+  vistaActual = vistaId;
+  document.querySelectorAll('[data-vista]').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-vista') === vistaId);
+  });
+  renderVista(vistaId);
+}
+
+// ── HAMBURGER / MOBILE ─────────────────────────────────────────────────────
+$('hamburger').addEventListener('click', () => {
+  $('sidebar').classList.add('mobile-open');
+  $('sb-overlay').classList.add('show');
+});
+$('sb-overlay').addEventListener('click', cerrarSidebarMovil);
+function cerrarSidebarMovil() {
+  $('sidebar').classList.remove('mobile-open');
+  $('sb-overlay').classList.remove('show');
+}
+
+$('btnLogout').addEventListener('click', () => {
+  sessionStorage.removeItem('fp_uid');
+  USER = null;
+  $('auth').style.display = 'flex';
+  $('layout').classList.remove('visible');
+  $('inpPass').value = '';
+  $('loginErr').classList.remove('show');
+});
+
+// ── RENDER VIEWS ───────────────────────────────────────────────────────────
+async function renderVista(id) {
+  const page = $('page');
+  const titles = { semaforo:'Dashboard', 'programa-enc':'Mi programa', 'programa-mtto':'Mis actividades', 'programa-todas':'Programa completo', externos:'Proveedores externos', catalogo:'Catálogo de actividades', planeacion:'Planeación anual', usuarios:'Usuarios' };
+  $('topbar-title').textContent = titles[id] || id;
+  page.innerHTML = `<div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div>`;
+  CATALOGO = await dbGet('catalogo') || {};
+  switch(id) {
+    case 'semaforo':       await renderSemaforo(page); break;
+    case 'programa-enc':   await renderPrograma(page, { soloResp: 'encargado', estacion: USER.estacionId, incluirCompartido: true }); break;
+    case 'programa-mtto':  await renderPrograma(page, { soloResp: 'mantenimiento', estacion: null, incluirCompartido: true }); break;
+    case 'programa-todas': await renderPrograma(page, { soloResp: null, estacion: null }); break;
+    case 'externos':       await renderExternos(page); break;
+    case 'catalogo':       renderCatalogo(page); break;
+    case 'planeacion':     await renderPlaneacion(page); break;
+    case 'usuarios':       await renderUsuarios(page); break;
+    default: page.innerHTML = `<div class="loader"><span>Vista no encontrada</span></div>`;
+  }
+}
+
+// ── VISTA SEMAFORO / DASHBOARD ────────────────────────────────────────────
+let _semMes = new Date().getMonth() + 1;
+
+async function renderSemaforo(page) {
+  const anio = ANIO;
+  const mesHoy = new Date().getMonth() + 1;
+  const mes = _semMes;
+
+  // Month selector toolbar
+  const mesOpts = MESES.map((m,i) => `<option value="${i+1}" ${i+1===mes?'selected':''}>${m}</option>`).join('');
+  page.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <label style="font-size:13px;font-weight:600;color:var(--texto2)">Mes a evaluar:</label>
+      <select id="selSemMes" style="width:auto;padding:7px 12px;font-size:13px;font-weight:600;border-color:var(--acc)">${mesOpts}</select>
+      <span style="font-size:12px;color:var(--texto3)">Solo actividades de Mantenimiento</span>
+    </div>
+    <div id="semBody"><div class="loader"><i class="ti ti-loader-2"></i><span>Calculando…</span></div></div>`;
+
+  $('selSemMes').addEventListener('change', async () => {
+    _semMes = parseInt($('selSemMes').value);
+    await calcularYRenderSem(anio, _semMes, $('semBody'));
+  });
+
+  await calcularYRenderSem(anio, mes, $('semBody'));
+}
+
+async function calcularYRenderSem(anio, mes, cont) {
+  // Only count Mantenimiento activities (including compartidas — mtto side)
+  const actsMtto = Object.entries(CATALOGO).filter(([,a]) =>
+    a.responsable === 'mantenimiento' || a.tambienEncargado
+  );
+
+  const tarjetas = await Promise.all(Object.entries(ESTACIONES).map(async ([estId, est]) => {
+    const prog = await dbGet(`programa/${anio}/${estId}`) || {};
+    let tocaban = 0, realizadas = 0;
+
+    actsMtto.forEach(([actId, act]) => {
+      if (act.soloEstacion && act.soloEstacion !== estId) return;
+      if (!(act.meses||[]).includes(mes)) return; // only this month
+      tocaban++;
+      const ej = prog[actId]?.[mes];
+      const r = act.tambienEncargado ? ej?.mtto?.estado === 'R' : ej?.estado === 'R';
+      if (r) realizadas++;
+    });
+
+    const pct = tocaban > 0 ? Math.round((realizadas/tocaban)*100) : null;
+    return { estId, nombre:est.nombre, pct, tocaban, realizadas };
+  }));
+
+  tarjetas.sort((a,b) => (a.pct??-1)-(b.pct??-1));
+
+  const enVerde = tarjetas.filter(t=>t.pct!==null&&t.pct>=85).length;
+  const enAmbar = tarjetas.filter(t=>t.pct!==null&&t.pct>=60&&t.pct<85).length;
+  const enRojo  = tarjetas.filter(t=>t.pct!==null&&t.pct<60).length;
+  const sinDatos= tarjetas.filter(t=>t.pct===null).length;
+
+  let html = `
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="kpi-card"><div class="kpi-label">Estaciones</div><div class="kpi-val">${tarjetas.length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">En verde (≥85%)</div><div class="kpi-val" style="color:var(--verde)">${enVerde}</div></div>
+      <div class="kpi-card"><div class="kpi-label">En ámbar (60-84%)</div><div class="kpi-val" style="color:var(--ambar)">${enAmbar}</div></div>
+      <div class="kpi-card"><div class="kpi-label">En rojo (&lt;60%)</div><div class="kpi-val" style="color:var(--rojo)">${enRojo}</div></div>
+    </div>
+    <div class="section-title">Semaforización — ${MESES[mes-1]} ${anio} · Mantenimiento</div>
+    <div class="est-grid">`;
+
+  tarjetas.forEach(t => {
+    const cls = t.pct===null ? 'sin-datos' : t.pct>=85 ? 'verde' : t.pct>=60 ? 'ambar' : 'rojo';
+    const pctTxt = t.pct !== null ? `${t.pct}%` : 'Sin datos';
+    const meta = t.pct !== null
+      ? `${t.realizadas} de ${t.tocaban} actividades`
+      : 'Sin programa generado';
+    html += `<div class="est-card ${cls}" data-nav-est="${t.estId}" style="cursor:pointer">
+      <div class="est-nombre">${t.nombre}</div>
+      <div class="est-pct">${pctTxt}</div>
+      <div class="est-meta">${meta}</div>
+    </div>`;
+  });
+
+  html += `</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px;font-size:11px;color:var(--texto3)">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--verde);display:inline-block"></span>Verde ≥85%</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--ambar);display:inline-block"></span>Ámbar 60-84%</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--rojo);display:inline-block"></span>Rojo &lt;60%</span>
+      <span>· Actividades de Mantenimiento programadas en ${MESES[mes-1]}</span>
+    </div>`;
+
+  cont.innerHTML = html;
+
+  cont.querySelectorAll('[data-nav-est]').forEach(el => {
+    el.addEventListener('click', () => {
+      const estId = el.getAttribute('data-nav-est');
+      navegarA('programa-todas');
+      setTimeout(() => {
+        document.querySelectorAll('.cb-est').forEach(cb => { cb.checked = cb.value === estId; });
+        document.querySelectorAll('.mes-cb').forEach(cb => { cb.checked = parseInt(cb.value) === mes; });
+        document.querySelectorAll('.cb-resp').forEach(cb => { cb.checked = cb.value === 'mantenimiento'; });
+        aplicarFiltros();
+      }, 400);
+    });
+  });
+}
+
+// ── VISTA PROGRAMA ─────────────────────────────────────────────────────────
+let _progCtx = {};
+async function renderPrograma(page, opts) {
+  const { soloResp, estacion, esExterno } = opts || {};
+  const anio = ANIO;
+
+  const catList = [...new Set(Object.values(CATALOGO).map(a=>a.categoria))].sort();
+
+  page.innerHTML = `
+    <div style="background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;">
+      <div class="filter-bar">
+        ${estacion ? `<strong style="font-size:13px">${ESTACIONES[estacion]?.nombre||estacion}</strong>` : `
+          <div class="dd-wrap">
+            <button class="dd-btn" id="ddEstBtn"><i class="ti ti-building-store" aria-hidden="true"></i>Estación<span class="dd-arrow">▾</span></button>
+            <div class="dd-panel" id="ddEstPanel">
+              ${Object.entries(ESTACIONES).map(([k,v])=>`<label class="dd-opt"><input type="checkbox" class="cb-est" value="${k}">${v.nombre}</label>`).join('')}
+              <div class="dd-divider"></div><div class="dd-action" id="ddEstTodos">Todas</div>
+            </div>
+          </div>`}
+        <div class="dd-wrap">
+          <button class="dd-btn" id="ddMesBtn"><i class="ti ti-calendar" aria-hidden="true"></i>Mes<span class="dd-arrow">▾</span></button>
+          <div class="dd-panel" id="ddMesPanel">
+            ${MESES.map((m,i)=>`<label class="dd-opt"><input type="checkbox" class="mes-cb" value="${i+1}">${m}</label>`).join('')}
+            <div class="dd-divider"></div><div class="dd-action" id="btnTodosMeses">Todos los meses</div>
+          </div>
+        </div>
+        <div class="dd-wrap">
+          <button class="dd-btn" id="ddFreqBtn"><i class="ti ti-refresh" aria-hidden="true"></i>Frecuencia<span class="dd-arrow">▾</span></button>
+          <div class="dd-panel" id="ddFreqPanel">
+            ${['Mensual','Trimestral','Cuatrimestral','Semestral','Anual'].map(f=>`<label class="dd-opt"><input type="checkbox" class="cb-freq" value="${f}">${f}</label>`).join('')}
+            <div class="dd-divider"></div><div class="dd-action" id="ddFreqTodos">Todas</div>
+          </div>
+        </div>
+        <div class="dd-wrap">
+          <button class="dd-btn" id="ddEstadoBtn"><i class="ti ti-circle-check" aria-hidden="true"></i>Estado<span class="dd-arrow">▾</span></button>
+          <div class="dd-panel" id="ddEstadoPanel">
+            <label class="dd-opt"><input type="checkbox" class="cb-estado" value="pendiente">Pendiente (P gris)</label>
+            <label class="dd-opt"><input type="checkbox" class="cb-estado" value="vencida">Vencido (P rojo)</label>
+            <label class="dd-opt"><input type="checkbox" class="cb-estado" value="realizado">Realizado (R)</label>
+            <div class="dd-divider"></div><div class="dd-action" id="ddEstadoTodos">Todos</div>
+          </div>
+        </div>
+        <div class="dd-wrap">
+          <button class="dd-btn" id="ddCatBtn"><i class="ti ti-tag" aria-hidden="true"></i>Categoría<span class="dd-arrow">▾</span></button>
+          <div class="dd-panel" id="ddCatPanel" style="min-width:220px">
+            ${catList.map(cat=>`<label class="dd-opt"><input type="checkbox" class="cb-cat" value="${cat}">${cat}</label>`).join('')}
+            <div class="dd-divider"></div><div class="dd-action" id="ddCatTodos">Todas</div>
+          </div>
+        </div>
+        ${(soloResp || esExterno) ? `` : `
+          <div class="dd-wrap">
+            <button class="dd-btn" id="ddRespBtn"><i class="ti ti-user" aria-hidden="true"></i>Responsable<span class="dd-arrow">▾</span></button>
+            <div class="dd-panel" id="ddRespPanel">
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="mantenimiento">Mantenimiento</label>
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="encargado">Encargado + Compartido</label>
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="externo">Externo</label>
+              <label class="dd-opt"><input type="checkbox" class="cb-resp" value="sistemas">Sistemas</label>
+              <div class="dd-divider"></div><div class="dd-action" id="ddRespTodos">Todos</div>
+            </div>
+          </div>`}
+        <button class="btn btn-ghost btn-sm" id="btnLimpiarFiltros" style="display:none;font-size:11px"><i class="ti ti-x" aria-hidden="true"></i> Limpiar filtros</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <div style="position:relative;flex:1;max-width:320px;">
+          <i class="ti ti-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--texto3);font-size:14px;" aria-hidden="true"></i>
+          <input type="text" id="busquedaAct" placeholder="Buscar… (sin acentos funciona)" style="padding:7px 10px 7px 30px;font-size:12px;width:100%">
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btnDescargar"><i class="ti ti-download" aria-hidden="true"></i> Descargar</button>
+      </div>
+    </div>
+    <div id="tablaPrograma"></div>`;
+
+  _progCtx = { soloResp, estacion, anio, esExterno };
+
+  // Wire up dropdown toggles
+  function setupDropdown(btnId, panelId) {
+    const btn = $(btnId), panel = $(panelId); if(!btn||!panel) return;
+    btn.addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.dd-panel.open').forEach(p=>{ if(p!==panel) p.classList.remove('open'); }); panel.classList.toggle('open'); });
+  }
+  ['ddEstBtn,ddEstPanel','ddMesBtn,ddMesPanel','ddFreqBtn,ddFreqPanel','ddEstadoBtn,ddEstadoPanel','ddCatBtn,ddCatPanel','ddRespBtn,ddRespPanel'].forEach(pair => {
+    const [b,p] = pair.split(','); setupDropdown(b,p);
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.dd-wrap')) {
+      document.querySelectorAll('.dd-panel.open').forEach(p=>p.classList.remove('open'));
+    }
+  });
+
+  // Clear all actions
+  const clearGroup = (cls) => document.querySelectorAll('.'+cls).forEach(cb=>cb.checked=false);
+  $('ddEstTodos')?.addEventListener('click',   ()=>{ clearGroup('cb-est');    aplicarFiltros(); });
+  $('btnTodosMeses')?.addEventListener('click', ()=>{ clearGroup('mes-cb');   aplicarFiltros(); });
+  $('ddFreqTodos')?.addEventListener('click',   ()=>{ clearGroup('cb-freq');  aplicarFiltros(); });
+  $('ddEstadoTodos')?.addEventListener('click', ()=>{ clearGroup('cb-estado');aplicarFiltros(); });
+  $('ddCatTodos')?.addEventListener('click',    ()=>{ clearGroup('cb-cat');   aplicarFiltros(); });
+  $('ddRespTodos')?.addEventListener('click',   ()=>{ clearGroup('cb-resp');  aplicarFiltros(); });
+  $('btnLimpiarFiltros')?.addEventListener('click', ()=>{ ['cb-est','mes-cb','cb-freq','cb-estado','cb-cat','cb-resp'].forEach(clearGroup); $('busquedaAct').value=''; aplicarFiltros(); });
+
+  // Change listeners
+  document.querySelectorAll('.cb-est,.mes-cb,.cb-freq,.cb-estado,.cb-cat,.cb-resp').forEach(cb=>cb.addEventListener('change', aplicarFiltros));
+  $('busquedaAct')?.addEventListener('input', aplicarFiltros);
+  $('btnDescargar').addEventListener('click', descargarExcel);
+  await aplicarFiltros();
+}
+
+
+async function aplicarFiltros() {
+  // Read from dropdown checkboxes
+  const estCbs   = [...document.querySelectorAll('.cb-est:checked')].map(cb=>cb.value);
+  const estacionSel = estCbs.length === 1 ? estCbs[0] : (_progCtx.estacion || Object.keys(ESTACIONES)[0] || 'estadio');
+  const mesSel      = [...document.querySelectorAll('.mes-cb:checked')].map(cb=>parseInt(cb.value));
+  const freqCbs     = [...document.querySelectorAll('.cb-freq:checked')].map(cb=>cb.value);
+  const estadoCbs   = [...document.querySelectorAll('.cb-estado:checked')].map(cb=>cb.value);
+  const catCbs      = [...document.querySelectorAll('.cb-cat:checked')].map(cb=>cb.value);
+  const respCbs     = [...document.querySelectorAll('.cb-resp:checked')].map(cb=>cb.value);
+  const freqSel     = freqCbs.length ? freqCbs : null;
+  const estadoSel   = estadoCbs.length ? estadoCbs : null;
+  const catSel      = catCbs.length ? catCbs : null;
+  const respSel     = respCbs.length ? respCbs : (_progCtx.soloResp ? [_progCtx.soloResp] : null);
+
+  // Update active state on dropdown buttons
+  const updateDDBtn = (btnId, cbs) => { const btn=$(btnId); if(!btn) return; btn.classList.toggle('active-filter', cbs.length>0); };
+  updateDDBtn('ddEstBtn',estCbs); updateDDBtn('ddMesBtn',mesSel); updateDDBtn('ddFreqBtn',freqCbs);
+  updateDDBtn('ddEstadoBtn',estadoCbs); updateDDBtn('ddCatBtn',catCbs); updateDDBtn('ddRespBtn',respCbs);
+  const anyActive = estCbs.length||mesSel.length||freqCbs.length||estadoCbs.length||catCbs.length||respCbs.length||($('busquedaAct')?.value||'').trim();
+  $('btnLimpiarFiltros') && ($('btnLimpiarFiltros').style.display = anyActive ? 'inline-flex' : 'none');
+  const busqueda    = ($('busquedaAct')?.value || '').toLowerCase().trim();
+  const anio        = _progCtx.anio || ANIO;
+  const mesHoy      = new Date().getMonth() + 1;
+
+  const estId = estacionSel || Object.keys(ESTACIONES)[0] || 'estadio';
+  const prog  = await dbGet(`programa/${anio}/${estId}`) || {};
+
+  const mesesSelArr = mesSel;
+  let acts = Object.entries(CATALOGO).filter(([id,act]) => {
+    if (act.soloEstacion && act.soloEstacion !== estId) return false;
+    if (freqSel && !freqSel.includes(act.freq)) return false;
+    if (catSel && !catSel.includes(act.categoria)) return false;
+    if (respSel) {
+      const matchPrimario = respSel.includes(act.responsable);
+      const matchEncShared = respSel.includes('encargado') && act.tambienEncargado;
+      if (!matchPrimario && !matchEncShared) return false;
+    }
+    if (busqueda && !normalizar(act.nombre).includes(normalizar(busqueda))) return false;
+    if (mesesSelArr.length > 0 && !mesesSelArr.some(m=>(act.meses||[]).includes(m))) return false;
+    return true;
+  });
+
+  const cont = $('tablaPrograma');
+  if (!acts.length) { cont.innerHTML = `<div class="loader"><span>No hay actividades con esos filtros</span></div>`; return; }
+
+  // Double grouping: freq → category
+  const byFreq = {};
+  acts.forEach(([id,act]) => {
+    const f = act.freq||'Sin freq';
+    const c = act.categoria||'Sin categoría';
+    if (!byFreq[f]) byFreq[f] = {};
+    if (!byFreq[f][c]) byFreq[f][c] = [];
+    byFreq[f][c].push([id,act]);
+  });
+  const freqOrdenadas = Object.keys(byFreq).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9));
+
+  // Which months to show
+  const mesesArr = mesesSelArr.length > 0 ? [...mesesSelArr].sort((a,b)=>a-b) : [1,2,3,4,5,6,7,8,9,10,11,12];
+
+  let html = `<div class="prog-table-wrap"><table class="prog-table">
+    <thead><tr>
+      <th style="width:36px;text-align:center">#</th>
+      <th>Actividad</th>`;
+  mesesArr.forEach(m => { html += `<th class="mes-th">${MESES[m-1]}</th>`; });
+  html += `<th class="resp-th">Responsable</th></tr></thead><tbody>`;
+
+  let contador = 0;
+  let hayFilas = false;
+
+  freqOrdenadas.forEach(freq => {
+    const cats = Object.keys(byFreq[freq]).sort();
+    let freqHeaderShown = false;
+    cats.forEach(cat => {
+      let catHeaderShown = false;
+      byFreq[freq][cat].forEach(([actId,act]) => {
+        const celdas = mesesArr.map(mesNum => {
+          const esProg = (act.meses||[]).includes(mesNum);
+          if (!esProg) return `<td class="celda-mes" style="color:var(--borde);text-align:center">·</td>`;
+          const ej = prog[actId]?.[mesNum];
+          const esExt = _progCtx.esExterno;
+          const esComp = act.tambienEncargado;
+          if (esComp) {
+            // Split cell: show Mtto|Enc status independently
+            const ejM = prog[actId]?.[mesNum]?.mtto || {};
+            const ejE = prog[actId]?.[mesNum]?.enc  || {};
+            const rM = ejM.estado === 'R', rE = ejE.estado === 'R';
+            const vM = !rM && mesNum < mesHoy, vE = !rE && mesNum < mesHoy;
+            const cellM = `<span style="font-weight:700;font-size:11px;color:${rM?'var(--verde)':vM?'var(--rojo)':'var(--texto3)'}">${rM?'R':'P'}</span>`;
+            const cellE = `<span style="font-weight:700;font-size:11px;color:${rE?'var(--verde)':vE?'var(--rojo)':'var(--texto3)'}">${rE?'R':'P'}</span>`;
+            const bg = (rM&&rE)?'#DCFCE7':((!rM&&vM)||(!rE&&vE))?'#FEE2E2':'';
+            return `<td class="celda-mes" style="text-align:center;padding:4px 2px;${bg?'background:'+bg+';':''}">
+              <div style="display:flex;justify-content:center;align-items:center;gap:2px;line-height:1">
+                ${cellM}<span style="color:var(--borde);font-size:9px">|</span>${cellE}
+              </div>
+              <div style="font-size:8px;color:var(--texto3);line-height:1;margin-top:1px">M|E</div>
+            </td>`;
+          }
+          if (ej?.estado === 'R' || (esExt && ej?.estadoExterno === 'certificada')) {
+            return `<td class="celda-mes" title="Realizado: ${fmtFecha(ej?.fechaReal)}" style="background:#DCFCE7;text-align:center"><span style="color:var(--verde);font-weight:700;font-size:13px">R</span></td>`;
+          } else if (esExt && ej?.estadoExterno && ej.estadoExterno !== 'pendiente') {
+            const extBadge = { agendada:'Ag.', ejecutada:'Ej.' };
+            const extColor = { agendada:'var(--ambar)', ejecutada:'#1D4ED8' };
+            return `<td class="celda-mes" style="background:#FEF3C7;text-align:center" title="${ej.estadoExterno}"><span style="color:${extColor[ej.estadoExterno]};font-weight:700;font-size:11px">${extBadge[ej.estadoExterno]}</span></td>`;
+          } else if (mesNum < mesHoy) {
+            if (estadoSel === 'R') return null;
+            return `<td class="celda-mes" style="background:#FEE2E2;text-align:center"><span style="color:var(--rojo);font-weight:700;font-size:12px">P</span></td>`;
+          } else {
+            if (estadoSel === 'R' || estadoSel === 'vencida') return null;
+            return `<td class="celda-mes" style="text-align:center"><span style="color:var(--texto3);font-size:12px">P</span></td>`;
+          }
+        });
+
+        const tieneR = celdas.some(c=>c&&c.includes('DCFCE7'));
+        const tieneVencida = celdas.some(c=>c&&c.includes('FEE2E2'));
+        const tienePend = celdas.some(c=>c&&c.includes('texto3'));
+        if (estadoSel) {
+          const quiereR = estadoSel.includes('realizado');
+          const quiereV = estadoSel.includes('vencida');
+          const quiereP = estadoSel.includes('pendiente');
+          const match = (quiereR&&tieneR)||(quiereV&&tieneVencida)||(quiereP&&tienePend);
+          if (!match) return;
+        }
+
+        if (!freqHeaderShown) {
+          html += `<tr><td colspan="${mesesArr.length+3}" style="background:var(--acc);color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 12px">${freq}</td></tr>`;
+          freqHeaderShown = true;
+        }
+        if (!catHeaderShown) {
+          html += `<tr><td colspan="${mesesArr.length+3}" style="background:#E8E6DF;color:var(--acc);font-weight:600;font-size:11px;padding:6px 12px 6px 20px;border-bottom:1px solid var(--borde)">▸ ${cat}</td></tr>`;
+          catHeaderShown = true;
+        }
+
+        contador++;
+        hayFilas = true;
+        const rowBg = contador % 2 === 0 ? '#FAFAF8' : '#fff';
+        html += `<tr data-actid="${actId}" data-estid="${estId}" style="cursor:pointer;background:${rowBg}">
+          <td style="text-align:center;color:var(--texto3);font-size:11px;font-weight:600;padding:7px 6px">${contador}</td>
+          <td>
+            <div class="act-nombre">${act.nombre}</div>
+            ${act.critica ? '<span style="font-size:10px;color:var(--rojo);margin-top:2px;display:inline-block">📷 Requiere foto</span>' : ''}
+          </td>
+          ${celdas.map(c=>c||`<td style="text-align:center;color:var(--borde)">·</td>`).join('')}
+          <td>${respTag(act.responsable, act.tambienEncargado)}</td>
+        </tr>`;
+      });
+    });
+  });
+
+  if (!hayFilas) { cont.innerHTML = `<div class="loader"><span>No hay actividades con esos filtros</span></div>`; return; }
+
+  html += `</tbody></table></div>
+    <div style="font-size:11px;color:var(--texto3);margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:14px;background:#DCFCE7;border-radius:2px;border:1px solid #86EFAC"></span>R = Realizado</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:14px;background:#FEE2E2;border-radius:2px;border:1px solid #FCA5A5"></span>P rojo = Vencido (mes ya pasó)</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:14px;height:14px;background:#F3F4F6;border-radius:2px;border:1px solid #D1D5DB"></span>P gris = Programado (mes por venir)</span>
+      <span style="margin-left:auto">Total: <strong>${contador}</strong> actividades</span>
+    </div>`;
+
+  cont.innerHTML = html;
+  cont.querySelectorAll('tr[data-actid]').forEach(row => {
+    row.addEventListener('click', async () => {
+      const actId = row.getAttribute('data-actid');
+      const estId = row.getAttribute('data-estid');
+      if (_progCtx.esExterno) {
+        // For externos, show month picker first
+        const act = CATALOGO[actId];
+        const mesesAct = (act?.meses||[]);
+        const mes = mesesAct.length === 1 ? mesesAct[0] : parseInt(prompt(`Selecciona el mes (${mesesAct.map(m=>MESES[m-1]).join(', ')}):`, mesesAct[0]));
+        if (mes && mesesAct.includes(mes)) abrirModalExterno(estId, actId, mes);
+      } else {
+        const progRow = await dbGet(`programa/${anio}/${estId}`) || {};
+        abrirModalActividad(actId, estId, progRow);
+      }
+    });
+  });
+}
+
+// ── MODAL ACTIVIDAD ────────────────────────────────────────────────────────
+async function abrirModalActividad(actId, estId, prog) {
+  const act = CATALOGO[actId];
+  if (!act) return;
+  const estNombre = ESTACIONES[estId]?.nombre || estId;
+  $('modalActTitle').textContent = estNombre ? `${estNombre} — ${act.freq}` : act.freq;
+  fotoB64 = null;
+
+  const modalBody = $('modalActBody');
+  const modalFoot = $('modalActFooter');
+
+  // Info card
+  let body = `
+    <div class="act-info-card">
+      <div class="act-info-title">${act.nombre}</div>
+      <div class="act-info-row">
+        <span>${act.freq}</span>
+        <span>·</span>
+        ${respTag(act.responsable)}
+        <span>·</span>
+        <span>${act.categoria||''}</span>
+        ${act.critica ? '<span>· <span class="badge badge-rojo">📷 Foto obligatoria</span></span>' : ''}
+      </div>
+    </div>`;
+
+  // Guía de pasos (si existe)
+  if (act.guia) {
+    body += `<div class="guia-section">
+      <div class="guia-title"><i class="ti ti-info-circle" aria-hidden="true"></i> Guía de revisión</div>
+      <div class="guia-text">${act.guia}</div>
+    </div>`;
+  } else {
+    body += `<div class="guia-section" style="opacity:.6">
+      <div class="guia-title"><i class="ti ti-info-circle" aria-hidden="true"></i> Guía de revisión</div>
+      <div class="guia-text" style="font-style:italic">Guía pendiente de configurar. El Director puede agregarla desde el Catálogo.</div>
+    </div>`;
+  }
+
+  // Meses del programa
+  body += `<div class="section-title">Estado del programa ${ANIO}</div>`;
+
+  const mesHtml = (act.meses||[]).map(m => {
+    const ej = prog[actId]?.[m];
+    const esPasado = m <= new Date().getMonth()+1;
+    let estado = 'P', cls = esPasado ? 'vencida' : 'p', title = '';
+    if (ej?.estado === 'R') { estado='R'; cls='r'; title = `Realizado: ${fmtFecha(ej.fechaReal)}`; }
+    return `<span class="badge ${cls==='r'?'badge-verde':cls==='vencida'?'badge-rojo':'badge-gris'}" 
+            style="margin:2px;cursor:pointer;padding:4px 10px;font-size:11px"
+            data-mes="${m}" title="${title}">${MESES[m-1]}: ${estado}</span>`;
+  }).join('');
+  body += `<div class="mb-12">${mesHtml}</div>`;
+
+  // Historial
+  const histData = await dbGet(`ejecuciones/${estId}/${actId}`) || {};
+  const histItems = Object.values(histData).sort((a,b)=>b.fechaReal-a.fechaReal);
+  if (histItems.length) {
+    body += `<div class="section-title">Historial de ejecuciones</div>`;
+    histItems.slice(0,5).forEach(h => {
+      const quien = USUARIOS[h.marcadoPor]?.nombre || h.marcadoPor || '—';
+      body += `<div class="hist-item">
+        <div class="hist-fecha">${fmtFecha(h.fechaReal)} — Mes: ${MESES[h.mes-1]}</div>
+        <div class="hist-meta">Registrado por: ${quien}</div>
+        ${h.observaciones ? `<div class="hist-meta mt-12">${h.observaciones}</div>` : ''}
+        ${h.foto ? `<img src="${h.foto}" style="max-width:100%;border-radius:4px;margin-top:6px" alt="foto de evidencia">` : ''}
+      </div>`;
+    });
+  }
+
+  modalBody.innerHTML = body;
+
+  // Footer — botón marcar según mes seleccionado
+  const puedeMarcar = ['director','santiago','supervisor','mantenimiento','encargado'].includes(USER.rol);
+  if (puedeMarcar) {
+    modalFoot.innerHTML = `
+      <div style="width:100%">
+        <div class="field" style="margin-bottom:10px">
+          <label for="selMesMarcar">Marcar mes</label>
+          <select id="selMesMarcar">
+            ${(act.meses||[]).map(m=>`<option value="${m}">${MESES[m-1]}</option>`).join('')}
+          </select>
+        </div>
+        <div id="marcadorForm"></div>
+      </div>`;
+    const selMes = $('selMesMarcar');
+    selMes.value = String(new Date().getMonth()+1);
+    selMes.addEventListener('change', () => renderMarcadorForm(actId, estId, prog, act));
+    renderMarcadorForm(actId, estId, prog, act);
+  } else {
+    modalFoot.innerHTML = '';
+  }
+
+  $('modalAct').classList.remove('hidden');
+}
+
+function renderMarcadorForm(actId, estId, prog, act) {
+  const mes = parseInt($('selMesMarcar')?.value);
+  if (!mes) return;
+  const cont = $('marcadorForm');
+  if (!cont) return;
+  const puedeEditar = puede('editarEjecucion');
+
+  // ── COMPARTIDA: show two independent markers ────────────────────────────
+  if (act.tambienEncargado) {
+    const ejM = prog[actId]?.[mes]?.mtto || {};
+    const ejE = prog[actId]?.[mes]?.enc  || {};
+    const rM = ejM.estado === 'R', rE = ejE.estado === 'R';
+    // Determine which sub-marker this user can operate
+    const esMtto = ['director','santiago','mantenimiento'].includes(USER.rol);
+    const esEnc  = ['director','santiago','supervisor','encargado'].includes(USER.rol);
+    const subKey = esMtto && !esEnc ? 'mtto' : !esMtto && esEnc ? 'enc' : null; // null = director can choose
+
+    cont.innerHTML = `
+      <div class="err-box" id="marcErrC"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="border:1px solid var(--borde);border-radius:var(--rs);padding:10px;text-align:center">
+          <div style="font-size:11px;color:var(--texto2);margin-bottom:6px;font-weight:600">MANTENIMIENTO</div>
+          <div style="font-size:20px;font-weight:700;color:${rM?'var(--verde)':'var(--texto3)'}">${rM?'R':'P'}</div>
+          ${rM ? `<div style="font-size:10px;color:var(--texto3);margin-top:4px">${fmtFecha(ejM.fechaReal)}</div>` : ''}
+          ${(esMtto||puedeEditar) ? `<button class="btn ${rM?'btn-ghost':'btn-primary'} btn-sm" style="margin-top:8px;width:100%;font-size:11px" id="btnMarcarMtto">${rM?'Revertir a P':'Marcar R'}</button>` : ''}
+        </div>
+        <div style="border:1px solid var(--borde);border-radius:var(--rs);padding:10px;text-align:center">
+          <div style="font-size:11px;color:var(--texto2);margin-bottom:6px;font-weight:600">ENCARGADO</div>
+          <div style="font-size:20px;font-weight:700;color:${rE?'var(--verde)':'var(--texto3)'}">${rE?'R':'P'}</div>
+          ${rE ? `<div style="font-size:10px;color:var(--texto3);margin-top:4px">${fmtFecha(ejE.fechaReal)}</div>` : ''}
+          ${(esEnc||puedeEditar) ? `<button class="btn ${rE?'btn-ghost':'btn-primary'} btn-sm" style="margin-top:8px;width:100%;font-size:11px" id="btnMarcarEnc">${rE?'Revertir a P':'Marcar R'}</button>` : ''}
+        </div>
+      </div>
+      ${act.critica ? `
+        <div style="font-size:11px;color:var(--texto2);margin-bottom:6px">Foto de evidencia <span style="color:var(--rojo)">· obligatoria</span></div>
+        <div class="foto-drop" id="fotoDropC"><i class="ti ti-camera" aria-hidden="true"></i><span>Tomar foto o seleccionar</span></div>
+        <img id="fotoPreviewC" class="foto-preview hidden" alt="foto de evidencia">
+        <input type="file" accept="image/*" capture="environment" id="fotoInputC" class="hidden">` : ''}
+      <div class="field" style="margin-bottom:10px">
+        <label for="obsInputC">Observaciones</label>
+        <textarea id="obsInputC" placeholder="Opcional"></textarea>
+      </div>`;
+
+    fotoB64 = null;
+    if (act.critica) {
+      $('fotoDropC')?.addEventListener('click', () => $('fotoInputC')?.click());
+      $('fotoInputC')?.addEventListener('change', e => {
+        const file = e.target.files[0]; if (!file) return;
+        const rd = new FileReader();
+        rd.onload = () => { fotoB64=rd.result; $('fotoPreviewC').src=fotoB64; $('fotoPreviewC').classList.remove('hidden'); $('fotoDropC').classList.add('hidden'); };
+        rd.readAsDataURL(file);
+      });
+    }
+
+    async function marcarSub(sub, yaR) {
+      if (act.critica && !fotoB64 && !yaR) { const e=$('marcErr')||$('marcErrC'); if(e){e.textContent='Requiere fotografía.';e.classList.add('show');} return; }
+      if (yaR && !confirm('¿Revertir a Pendiente (P)?')) return;
+      const ahora = Date.now();
+      const obs = ($('obsInputC')||$('obsInput'))?.value.trim()||null;
+      if (yaR) {
+        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}/${sub}`, { estado:'P', fechaReal:null, marcadoPor:null });
+      } else {
+        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}/${sub}`, { estado:'R', fechaReal:ahora, marcadoPor:USER.id });
+        const ejId = `ej${ahora}`;
+        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, sub, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
+      }
+      $('modalAct').classList.add('hidden');
+      await renderVista(vistaActual);
+    }
+
+    $('btnMarcarMtto')?.addEventListener('click', () => marcarSub('mtto', rM));
+    $('btnMarcarEnc')?.addEventListener('click',  () => marcarSub('enc',  rE));
     return;
   }
 
-  usuarioActual = { id, ...u };
-  sessionStorage.setItem("fp_usuario", id);
-  mostrarApp();
-});
+  // ── NORMAL activity ─────────────────────────────────────────────────────
+  const ej = prog[actId]?.[mes];
+  const yaRealizado = ej?.estado === 'R';
 
-document.getElementById("btnSalir").addEventListener("click", () => {
-  sessionStorage.removeItem("fp_usuario");
-  usuarioActual = null;
-  document.getElementById("app").classList.add("hidden");
-  document.getElementById("auth").classList.remove("hidden");
-  document.getElementById("inpPass").value = "";
-});
+  if (yaRealizado && !puedeEditar) {
+    cont.innerHTML = `<div class="badge badge-verde" style="padding:8px 12px">✓ Realizado el ${fmtFecha(ej.fechaReal)}</div>`;
+    return;
+  }
 
-function mostrarApp() {
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("hdrTitulo").textContent = "Flecha Preventivo";
-  const rolTxt = ROL_LABEL[usuarioActual.rol] || usuarioActual.rol;
-  document.getElementById("hdrSub").textContent = `${usuarioActual.nombre} · ${rolTxt}`;
-}
+  cont.innerHTML = `
+    <div class="err-box" id="marcErr"></div>
+    ${yaRealizado ? `<div class="badge badge-verde mb-12" style="padding:8px 12px">✓ Ya realizado — puedes sobreescribir</div>` : ''}
+    <div class="fecha-auto">
+      <i class="ti ti-clock" aria-hidden="true"></i>
+      <span>${fmtFecha(Date.now())}</span>
+      <span class="tag">automático</span>
+    </div>
+    ${act.critica ? `
+      <div class="field-label" style="font-size:11px;color:var(--texto2);margin-bottom:6px">Foto de evidencia <span style="color:var(--rojo)">· obligatoria</span></div>
+      <div class="foto-drop" id="fotoDrop"><i class="ti ti-camera" aria-hidden="true"></i><span>Tomar foto o seleccionar</span></div>
+      <img id="fotoPreview" class="foto-preview hidden" alt="foto de evidencia">
+      <input type="file" accept="image/*" capture="environment" id="fotoInput" class="hidden">` : ''}
+    <div class="field" style="margin-bottom:10px">
+      <label for="obsInput">Observaciones</label>
+      <textarea id="obsInput" placeholder="Opcional — describe lo que encontraste"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      ${yaRealizado ? `<button class="btn btn-danger btn-sm" id="btnDesmarcar"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i> Revertir a P</button>` : ''}
+      <button class="btn btn-primary" id="btnMarcar" style="flex:1"><i class="ti ti-check" aria-hidden="true"></i> Marcar como R</button>
+    </div>`;
 
-async function init() {
-  await cargarUsuarios();
-  const sesionGuardada = sessionStorage.getItem("fp_usuario");
-  if (sesionGuardada && USUARIOS[sesionGuardada]) {
-    usuarioActual = { id: sesionGuardada, ...USUARIOS[sesionGuardada] };
-    mostrarApp();
+  fotoB64 = null;
+  if (act.critica) {
+    $('fotoDrop').addEventListener('click', () => $('fotoInput').click());
+    $('fotoInput').addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const rd = new FileReader();
+      rd.onload = () => { fotoB64 = rd.result; $('fotoPreview').src=fotoB64; $('fotoPreview').classList.remove('hidden'); $('fotoDrop').classList.add('hidden'); };
+      rd.readAsDataURL(file);
+    });
+  }
+
+  $('btnMarcar').addEventListener('click', async () => {
+    const err = $('marcErr'); err.classList.remove('show');
+    if (act.critica && !fotoB64) { err.textContent='Esta actividad requiere fotografía.'; err.classList.add('show'); return; }
+    const btn = $('btnMarcar'); btn.disabled=true; btn.textContent='Guardando...';
+    const ahora = Date.now();
+    const obs = $('obsInput')?.value.trim()||null;
+    try {
+      await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'R', fechaReal:ahora, marcadoPor:USER.id });
+      const ejId = `ej${ahora}`;
+      await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:ahora, mes, marcadoPor:USER.id, observaciones:obs, foto:fotoB64||null });
+      $('modalAct').classList.add('hidden');
+      await renderVista(vistaActual);
+    } catch(e) { err.textContent='Error al guardar: '+e.message; err.classList.add('show'); btn.disabled=false; btn.textContent='Marcar como R'; }
+  });
+
+  if (yaRealizado) {
+    $('btnDesmarcar').addEventListener('click', async () => {
+      if (!confirm('¿Revertir esta actividad a Pendiente (P)?')) return;
+      await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'P', fechaReal:null, marcadoPor:null });
+      $('modalAct').classList.add('hidden');
+      await renderVista(vistaActual);
+    });
   }
 }
 
-init();
+$('modalActClose').addEventListener('click', () => $('modalAct').classList.add('hidden'));
+
+// ── VISTA EXTERNOS ─────────────────────────────────────────────────────────
+async function renderExternos(page) {
+  // Reutiliza renderPrograma con soloResp fijo a externo y sin opción de cambiar responsable
+  await renderPrograma(page, { soloResp: 'externo', estacion: null, esExterno: true });
+}
+
+async function abrirModalExterno(estId, actId, mes) {
+  const act = CATALOGO[actId];
+  if (!act) return;
+  const prog = await dbGet(`programa/${ANIO}/${estId}/${actId}/${mes}`) || {};
+  const estadoExt = prog.estadoExterno || 'pendiente';
+  const estNombre = ESTACIONES[estId]?.nombre || estId;
+
+  $('modalActTitle').textContent = `${estNombre} — ${MESES[mes-1]} — Externo`;
+
+  const badgeCls = { pendiente:'ext-pendiente', agendada:'ext-agendada', ejecutada:'ext-ejecutada', certificada:'ext-certificada' };
+  const badgeTxt = { pendiente:'Pendiente', agendada:'Agendada', ejecutada:'Ejecutada', certificada:'Certificada' };
+
+  let body = `
+    <div class="act-info-card">
+      <div class="act-info-title">${act.nombre}</div>
+      <div class="act-info-row">${respTag('externo')} · ${act.categoria||''}</div>
+    </div>
+    <div class="gap-8 mb-12">
+      <span>Estado actual:</span>
+      <span class="ext-estado-badge ${badgeCls[estadoExt]}">${badgeTxt[estadoExt]}</span>
+    </div>`;
+
+  let foot = '';
+  if (estadoExt === 'pendiente') {
+    body += `<div class="field"><label>Proveedor / empresa</label><input type="text" id="extProv" placeholder="Nombre del proveedor" value="${prog.proveedorNombre||''}"></div>
+      <div class="field"><label>Fecha programada de visita</label><input type="date" id="extFecha"></div>`;
+    foot = `<button class="btn btn-ghost btn-sm" data-ext-action="cancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" data-ext-action="agendar"><i class="ti ti-calendar-plus"></i> Agendar visita</button>`;
+  } else if (estadoExt === 'agendada') {
+    body += `<div class="card" style="margin-bottom:12px"><div class="text-sm"><strong>Proveedor:</strong> ${prog.proveedorNombre||'—'}</div><div class="text-sm"><strong>Fecha agendada:</strong> ${prog.fechaAgendada ? fmtFecha(prog.fechaAgendada).split(',')[0] : '—'}</div></div>
+      <div style="font-size:12px;color:var(--texto2);margin-bottom:10px">Foto de evidencia de la visita (obligatoria):</div>
+      <div class="foto-drop" id="extFotoDrop"><i class="ti ti-camera"></i><span>Tomar foto o seleccionar</span></div>
+      <img id="extFotoPreview" class="foto-preview hidden" alt="foto de evidencia de visita externa">
+      <input type="file" accept="image/*" capture="environment" id="extFotoInput" class="hidden">`;
+    foot = `<button class="btn btn-ghost btn-sm" data-ext-action="cancel">Cancelar</button>
+      <button class="btn btn-primary btn-sm" data-ext-action="ejecutar"><i class="ti ti-check"></i> Marcar como ejecutada</button>`;
+  } else if (estadoExt === 'ejecutada') {
+    body += `<div class="card" style="margin-bottom:12px"><div class="text-sm"><strong>Proveedor:</strong> ${prog.proveedorNombre||'—'}</div></div>
+      <div style="font-size:12px;color:var(--texto2);margin-bottom:10px">Adjunta el certificado o reporte del proveedor (puede llegar después):</div>
+      <div class="foto-drop" id="extCertDrop"><i class="ti ti-file-upload"></i><span>Adjuntar certificado (PDF o foto)</span></div>
+      <img id="extCertPreview" class="foto-preview hidden" alt="vista previa del certificado del proveedor externo">
+      <input type="file" accept="image/*,application/pdf" id="extCertInput" class="hidden">`;
+    foot = `<button class="btn btn-ghost btn-sm" data-ext-action="sincert">Cerrar sin certificado</button>
+      <button class="btn btn-primary btn-sm" data-ext-action="certificar"><i class="ti ti-check"></i> Adjuntar y certificar</button>`;
+  } else if (estadoExt === 'certificada') {
+    body += `<div class="badge badge-verde" style="padding:10px;font-size:13px">✓ Actividad certificada. Ciclo completado.</div>`;
+    foot = `<button class="btn btn-ghost btn-sm" data-ext-action="cancel">Cerrar</button>`;
+  }
+
+  $('modalActBody').innerHTML = body;
+  $('modalActFooter').innerHTML = foot;
+
+  let extFotoB64 = null;
+
+  // Bind footer actions via data attribute
+  $('modalActFooter').querySelectorAll('[data-ext-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const action = btn.getAttribute('data-ext-action');
+      if (action === 'cancel') { $('modalAct').classList.add('hidden'); return; }
+
+      if (action === 'agendar') {
+        const prov = $('extProv')?.value.trim();
+        const fecha = $('extFecha')?.value;
+        if (!prov || !fecha) { alert('Indica proveedor y fecha.'); return; }
+        await dbUpd(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estadoExterno:'agendada', proveedorNombre:prov, fechaAgendada:new Date(fecha).getTime() });
+        $('modalAct').classList.add('hidden');
+        await renderVista(vistaActual);
+      }
+      if (action === 'ejecutar') {
+        if (!extFotoB64) { alert('Sube foto de evidencia.'); return; }
+        await dbUpd(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estadoExterno:'ejecutada' });
+        const ejId = `ej${Date.now()}`;
+        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'ejecutada', fechaReal:Date.now(), mes, marcadoPor:USER.id, foto:extFotoB64 });
+        $('modalAct').classList.add('hidden');
+        await renderVista(vistaActual);
+      }
+      if (action === 'certificar') {
+        if (!extFotoB64) { alert('Adjunta el certificado.'); return; }
+        await dbUpd(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estadoExterno:'certificada', estado:'R', fechaReal:Date.now() });
+        $('modalAct').classList.add('hidden');
+        await renderVista(vistaActual);
+      }
+      if (action === 'sincert') {
+        await dbUpd(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estadoExterno:'certificada', estado:'R', fechaReal:Date.now() });
+        $('modalAct').classList.add('hidden');
+        await renderVista(vistaActual);
+      }
+    });
+  });
+
+  // Foto para ejecutar
+  $('extFotoDrop')?.addEventListener('click', () => $('extFotoInput')?.click());
+  $('extFotoInput')?.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => { extFotoB64=rd.result; $('extFotoPreview').src=extFotoB64; $('extFotoPreview').classList.remove('hidden'); $('extFotoDrop').classList.add('hidden'); };
+    rd.readAsDataURL(file);
+  });
+  // Certificado
+  $('extCertDrop')?.addEventListener('click', () => $('extCertInput')?.click());
+  $('extCertInput')?.addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => { extFotoB64=rd.result; if(file.type.startsWith('image/')){ $('extCertPreview').src=extFotoB64; $('extCertPreview').classList.remove('hidden'); } $('extCertDrop').classList.add('hidden'); };
+    rd.readAsDataURL(file);
+  });
+  $('modalAct').classList.remove('hidden');
+}
+
+// ── CATÁLOGO ───────────────────────────────────────────────────────────────
+function renderCatalogo(page) {
+  const cats = [...new Set(Object.values(CATALOGO).map(a=>a.categoria))].sort();
+  const catOpts = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  let html = `
+    <div class="gap-8 mb-12">
+      <button class="btn btn-primary btn-sm" id="btnNuevaAct"><i class="ti ti-plus"></i> Nueva actividad</button>
+      <button class="btn btn-ghost btn-sm" id="btnNuevaCat"><i class="ti ti-folder-plus"></i> Nueva categoría</button>
+      <select id="filtroEditCat" style="width:auto;padding:7px 10px;font-size:12px"><option value="">Todas las categorías</option>${catOpts}</select>
+    </div>
+    <div id="listaCatalogo"></div>`;
+  page.innerHTML = html;
+  $('filtroEditCat').addEventListener('change', () => renderListaCatalogo($('filtroEditCat').value));
+  $('btnNuevaAct').addEventListener('click', () => abrirModalEdit(null));
+  $('btnNuevaCat').addEventListener('click', async () => {
+    const nombre = prompt('Nombre de la nueva categoría:');
+    if (!nombre?.trim()) return;
+    // Agrega una actividad placeholder o solo guarda la cat en una lista separada
+    alert(`Categoría "${nombre}" lista — asígnala al crear o editar actividades.`);
+  });
+  renderListaCatalogo('');
+}
+
+function renderListaCatalogo(catFiltro) {
+  const lista = $('listaCatalogo');
+  const acts = Object.entries(CATALOGO).filter(([,a])=>!catFiltro||a.categoria===catFiltro);
+
+  // Double grouping: freq → category (same as programa completo)
+  const byFreqCat = {};
+  acts.forEach(([id,a])=>{
+    const f=a.freq||'Sin freq'; const cat=a.categoria||'Sin categoría';
+    if(!byFreqCat[f]) byFreqCat[f]={};
+    if(!byFreqCat[f][cat]) byFreqCat[f][cat]=[];
+    byFreqCat[f][cat].push([id,a]);
+  });
+  const freqs = Object.keys(byFreqCat).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9));
+
+  let html = ''; let num = 0;
+  freqs.forEach(freq => {
+    html += `<div style="background:var(--acc);color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;border-radius:var(--rs) var(--rs) 0 0;margin-top:14px">${freq}</div>`;
+    Object.keys(byFreqCat[freq]).sort().forEach(cat => {
+      html += `<div style="background:#E8E6DF;color:var(--acc);font-weight:600;font-size:11px;padding:5px 12px 5px 18px;border-bottom:1px solid var(--borde)">▸ ${cat}</div>`;
+      byFreqCat[freq][cat].forEach(([id,act]) => {
+        num++;
+        html += `<div class="cat-item" style="border-radius:0;border-top:none;margin-bottom:0;border-bottom:1px solid var(--borde)">
+          <div style="width:24px;text-align:center;color:var(--texto3);font-size:11px;font-weight:600;flex-shrink:0">${num}</div>
+          <div class="cat-item-main">
+            <div class="cat-item-name">${act.nombre}</div>
+            <div class="cat-item-meta">${respTag(act.responsable, act.tambienEncargado)} ${act.critica?'· <span class="badge badge-rojo">📷 Foto</span>':''} ${act.soloEstacion?`· Solo <strong>${act.soloEstacion}</strong>`:''}</div>
+          </div>
+          <div class="cat-item-actions">
+            <button class="icon-btn" data-edit="${id}" title="Editar"><i class="ti ti-edit" aria-hidden="true"></i></button>
+            <button class="icon-btn danger" data-del="${id}" title="Eliminar"><i class="ti ti-trash" aria-hidden="true"></i></button>
+          </div>
+        </div>`;
+      });
+    });
+  });
+
+  lista.innerHTML = html || '<div class="loader"><span>Sin actividades</span></div>';
+  lista.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => abrirModalEdit(btn.getAttribute('data-edit'))));
+  lista.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('¿Eliminar esta actividad del catálogo?')) return;
+    await remove(r(`catalogo/${btn.getAttribute('data-del')}`));
+    CATALOGO = await dbGet('catalogo') || {};
+    renderListaCatalogo($('filtroEditCat')?.value||'');
+  }));
+}
+
+function abrirModalEdit(actId) {
+  const act = actId ? CATALOGO[actId] : null;
+  $('modalEditTitle').textContent = act ? 'Editar actividad' : 'Nueva actividad';
+  const cats = [...new Set(Object.values(CATALOGO).map(a=>a.categoria))].sort();
+  const catOpts = cats.map(c=>`<option value="${c}" ${act?.categoria===c?'selected':''}>${c}</option>`).join('');
+  const mesChecks = MESES.map((m,i) => `
+    <div class="mes-check">
+      <input type="checkbox" id="mc${i+1}" value="${i+1}" ${(act?.meses||[]).includes(i+1)?'checked':''}>
+      <label for="mc${i+1}">${m}</label>
+    </div>`).join('');
+
+  $('modalEditBody').innerHTML = `
+    <div class="field"><label>Nombre de la actividad</label><input type="text" id="editNombre" value="${act?.nombre||''}"></div>
+    <div class="field"><label>Categoría</label>
+      <select id="editCat"><option value="">Sin categoría</option>${catOpts}<option value="__nueva__">+ Nueva categoría…</option></select>
+    </div>
+    <div class="field"><label>Frecuencia</label>
+      <select id="editFreq">
+        ${['Mensual','Trimestral','Cuatrimestral','Semestral','Anual'].map(f=>`<option value="${f}" ${act?.freq===f?'selected':''}>${f}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>Meses programados</label>
+      <div class="mes-check-grid">${mesChecks}</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnTodos">Todos</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnNinguno">Ninguno</button>
+      </div>
+    </div>
+    <div class="field"><label>Responsable</label>
+      <select id="editResp">
+        ${['mantenimiento','encargado','externo','sistemas'].map(r=>`<option value="${r}" ${act?.responsable===r?'selected':''}>${RESP_LABEL[r]||r}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+      <input type="checkbox" id="editCritica" ${act?.critica?'checked':''} style="width:16px;height:16px;accent-color:var(--acc)">
+      <label for="editCritica" style="text-transform:none;font-size:13px;color:var(--texto)">Requiere fotografía (actividad crítica)</label>
+    </div>
+    <div class="field"><label>Solo para estación (dejar vacío si aplica a todas)</label>
+      <select id="editSoloEst"><option value="">Todas las estaciones</option>
+        ${Object.entries(ESTACIONES).map(([k,v])=>`<option value="${k}" ${act?.soloEstacion===k?'selected':''}>${v.nombre}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>Guía de pasos (opcional)</label><textarea id="editGuia" placeholder="Describe los pasos de revisión o qué hacer si se encuentra un problema…">${act?.guia||''}</textarea></div>`;
+
+  $('btnTodos').addEventListener('click', () => MESES.forEach((_,i) => { const cb = document.getElementById(`mc${i+1}`); if(cb) cb.checked=true; }));
+  $('btnNinguno').addEventListener('click', () => MESES.forEach((_,i) => { const cb = document.getElementById(`mc${i+1}`); if(cb) cb.checked=false; }));
+  $('editCat').addEventListener('change', () => {
+    if ($('editCat').value === '__nueva__') {
+      const nueva = prompt('Nombre de la nueva categoría:');
+      if (nueva?.trim()) {
+        const opt = document.createElement('option'); opt.value=nueva; opt.textContent=nueva; opt.selected=true;
+        $('editCat').insertBefore(opt, $('editCat').lastElementChild);
+        $('editCat').value = nueva;
+      } else { $('editCat').value=''; }
+    }
+  });
+
+  editCtx = { actId };
+  $('modalEdit').classList.remove('hidden');
+}
+
+$('btnEditSave').addEventListener('click', async () => {
+  const nombre = $('editNombre')?.value.trim();
+  if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  const meses = MESES.map((_,i)=>i+1).filter(i=>document.getElementById(`mc${i}`)?.checked);
+  const datos = {
+    nombre, freq:$('editFreq').value, meses, responsable:$('editResp').value,
+    critica:$('editCritica').checked, categoria:$('editCat').value||'General',
+    soloEstacion:$('editSoloEst').value||null, guia:$('editGuia').value.trim()
+  };
+  const id = editCtx?.actId || nombre.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30);
+  await dbSet(`catalogo/${id}`, datos);
+  CATALOGO = await dbGet('catalogo') || {};
+  $('modalEdit').classList.add('hidden');
+  renderCatalogo($('page'));
+});
+$('modalEditClose').addEventListener('click', () => $('modalEdit').classList.add('hidden'));
+$('btnEditCancel').addEventListener('click',  () => $('modalEdit').classList.add('hidden'));
+
+// ── PLANEACIÓN ANUAL ───────────────────────────────────────────────────────
+async function renderPlaneacion(page) {
+  const anios = [ANIO, ANIO+1];
+  let html = `<div class="gap-8 mb-12">
+    <label style="font-size:13px;font-weight:600">Año a planificar:</label>
+    <select id="selAnioPlaner">${anios.map(a=>`<option value="${a}">${a}</option>`).join('')}</select>
+    <select id="selEstPlaner"><option value="">— Selecciona estación —</option>${Object.entries(ESTACIONES).map(([k,v])=>`<option value="${k}">${v.nombre}</option>`).join('')}</select>
+    <button class="btn btn-primary btn-sm" id="btnCargarPlan"><i class="ti ti-table"></i> Cargar programa</button>
+  </div>
+  <div id="planContent"></div>`;
+  page.innerHTML = html;
+  $('btnCargarPlan').addEventListener('click', async () => {
+    const anio = parseInt($('selAnioPlaner').value);
+    const estId = $('selEstPlaner').value;
+    if (!estId) { alert('Selecciona una estación.'); return; }
+    await renderTablaPlaneacion(anio, estId);
+  });
+}
+
+async function renderTablaPlaneacion(anio, estId) {
+  const prog = await dbGet(`programa/${anio}/${estId}`) || {};
+  const estNombre = ESTACIONES[estId]?.nombre || estId;
+  const acts = Object.entries(CATALOGO).filter(([,a])=>!a.soloEstacion||a.soloEstacion===estId);
+  const byFreq = {}; // kept for compatibility
+  acts.forEach(([id,a])=>{ const f=a.freq||'Sin freq'; if(!byFreq[f]) byFreq[f]=[]; byFreq[f].push([id,a]); });
+
+  // Build byFreq -> byCategory
+  const byFreqCat = {};
+  acts.forEach(([id,a])=>{
+    const f=a.freq||'Sin freq'; const cat=a.categoria||'Sin categoría';
+    if(!byFreqCat[f]) byFreqCat[f]={};
+    if(!byFreqCat[f][cat]) byFreqCat[f][cat]=[];
+    byFreqCat[f][cat].push([id,a]);
+  });
+
+  let html = `<div class="section-title">${estNombre} — ${anio}</div>
+    <div class="prog-table-wrap"><table class="plan-table">
+    <thead><tr><th>#</th><th>Actividad</th>${MESES.map(m=>`<th style="width:40px;font-size:10px">${m}</th>`).join('')}</tr></thead><tbody>`;
+
+  let planNum = 0;
+  Object.keys(byFreqCat).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9)).forEach(freq => {
+    html += `<tr><td colspan="14" style="background:var(--acc);color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;padding:7px 10px">${freq}</td></tr>`;
+    Object.keys(byFreqCat[freq]).sort().forEach(cat => {
+      html += `<tr><td colspan="14" style="background:#E8E6DF;color:var(--acc);font-weight:600;font-size:11px;padding:5px 10px 5px 18px">▸ ${cat}</td></tr>`;
+      byFreqCat[freq][cat].forEach(([actId,act]) => {
+        planNum++;
+        const mesesProg = prog[actId] ? Object.keys(prog[actId]).map(Number) : (act.meses||[]);
+        const celdas = MESES.map((_,mi) => {
+          const mes = mi+1;
+          const marcado = mesesProg.includes(mes);
+          return `<td style="text-align:center"><input type="checkbox" class="plan-check" data-act="${actId}" data-mes="${mes}" ${marcado?'checked':''}></td>`;
+        }).join('');
+        const rowBg = planNum%2===0?'#FAFAF8':'#fff';
+        html += `<tr style="background:${rowBg}"><td style="text-align:center;font-size:11px;color:var(--texto3);padding:5px 6px">${planNum}</td><td style="font-size:12px;padding:6px 10px">${act.nombre}</td>${celdas}</tr>`;
+      });
+    });
+  });
+
+  html += `</tbody></table></div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-primary" id="btnGuardarPlan"><i class="ti ti-device-floppy"></i> Guardar programa ${anio}</button>
+    </div>`;
+  $('planContent').innerHTML = html;
+
+  $('btnGuardarPlan').addEventListener('click', async () => {
+    const btn = $('btnGuardarPlan'); btn.disabled=true; btn.textContent='Guardando...';
+    const nuevoProg = {};
+    document.querySelectorAll('.plan-check').forEach(cb => {
+      const actId = cb.getAttribute('data-act');
+      const mes   = parseInt(cb.getAttribute('data-mes'));
+      if (cb.checked) {
+        if (!nuevoProg[actId]) nuevoProg[actId] = {};
+        nuevoProg[actId][mes] = nuevoProg[actId][mes] || { estado:'P' };
+      }
+    });
+    await dbSet(`programa/${anio}/${estId}`, nuevoProg);
+    btn.disabled=false; btn.innerHTML='<i class="ti ti-check"></i> Guardado ✓';
+    setTimeout(()=>{ btn.innerHTML='<i class="ti ti-device-floppy"></i> Guardar programa '+anio; },2000);
+  });
+}
+
+// ── USUARIOS ───────────────────────────────────────────────────────────────
+async function renderUsuarios(page) {
+  const data = await dbGet('usuarios') || {};
+  USUARIOS = data;
+  const grupos = { director:[], santiago:[], supervisor:[], mantenimiento:[], encargado:[] };
+  Object.entries(data).forEach(([id,u])=>{ if(grupos[u.rol]) grupos[u.rol].push([id,u]); });
+  const labels = { director:'Dirección', santiago:'Gerencia', supervisor:'Supervisores', mantenimiento:'Mantenimiento', encargado:'Encargados de estación' };
+  let html = '';
+  Object.entries(labels).forEach(([rol,lbl])=>{
+    if (!grupos[rol].length) return;
+    html += `<div class="section-title">${lbl}</div>`;
+    grupos[rol].forEach(([id,u]) => {
+      const inicial = u.nombre.charAt(0).toUpperCase();
+      html += `<div class="user-item">
+        <div class="user-avatar">${inicial}</div>
+        <div class="user-info">
+          <div class="user-name">${u.nombre}</div>
+          <div class="user-rol">${ROL_LABEL[u.rol]||u.rol}${u.estacionId?' — '+ESTACIONES[u.estacionId]?.nombre:''}</div>
+        </div>
+        <button class="icon-btn" data-uid="${id}" title="Cambiar contraseña"><i class="ti ti-key" aria-hidden="true"></i></button>
+      </div>`;
+    });
+  });
+  page.innerHTML = html;
+  page.querySelectorAll('[data-uid]').forEach(btn => {
+    btn.addEventListener('click', () => abrirModalPass(btn.getAttribute('data-uid')));
+  });
+}
+
+function abrirModalPass(uid) {
+  const u = USUARIOS[uid]; if (!u) return;
+  $('passUserLabel').textContent = u.nombre;
+  $('passNew').value = ''; $('passConf').value = '';
+  $('passErr').classList.remove('show');
+  passCtx = { uid };
+  $('modalPass').classList.remove('hidden');
+}
+$('modalPassClose').addEventListener('click', () => $('modalPass').classList.add('hidden'));
+$('btnPassCancel').addEventListener('click',  () => $('modalPass').classList.add('hidden'));
+$('btnPassSave').addEventListener('click', async () => {
+  const np = $('passNew').value, nc = $('passConf').value;
+  const err = $('passErr'); err.classList.remove('show');
+  if (!np || np.length < 4) { err.textContent='Mínimo 4 caracteres.'; err.classList.add('show'); return; }
+  if (np !== nc) { err.textContent='Las contraseñas no coinciden.'; err.classList.add('show'); return; }
+  await dbUpd(`usuarios/${passCtx.uid}`, { pass:np });
+  $('modalPass').classList.add('hidden');
+  alert('Contraseña actualizada.');
+});
+
+// ── DESCARGA EXCEL ─────────────────────────────────────────────────────────
+async function descargarExcel() {
+  const estacionSel = $('filtroEstacion')?.value || Object.keys(ESTACIONES)[0];
+  const anio = ANIO;
+  const prog = await dbGet(`programa/${anio}/${estacionSel}`) || {};
+  const estNombre = ESTACIONES[estacionSel]?.nombre || estacionSel;
+
+  // CSV simple exportable
+  let csv = `"PROGRAMA ANUAL DE MANTENIMIENTO - ${estNombre} - ${anio}"\n`;
+  csv += `"Actividad","Frecuencia","Categoría","Responsable",${MESES.map(m=>`"${m}"`).join(',')}\n`;
+
+  const byFreq = {};
+  Object.entries(CATALOGO).forEach(([id,a])=>{ const f=a.freq||'Sin freq'; if(!byFreq[f]) byFreq[f]=[]; byFreq[f].push([id,a]); });
+  Object.keys(byFreq).sort((a,b)=>(FREQ_ORDER[a]||9)-(FREQ_ORDER[b]||9)).forEach(freq => {
+    byFreq[freq].forEach(([actId,act]) => {
+      const mesesRow = MESES.map((_,mi) => {
+        const mes = mi+1;
+        if (!(act.meses||[]).includes(mes)) return '""';
+        const ej = prog[actId]?.[mes];
+        return ej?.estado==='R' ? '"R"' : '"P"';
+      }).join(',');
+      csv += `"${act.nombre}","${act.freq}","${act.categoria||''}","${RESP_LABEL[act.responsable]||act.responsable}",${mesesRow}\n`;
+    });
+  });
+  csv += `\n"P = Pendiente  |  R = Realizado"\n`;
+
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `programa_${estNombre}_${anio}.csv`; a.click();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+initAuth();
 </script>
 </body>
 </html>
