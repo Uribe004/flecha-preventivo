@@ -90,7 +90,7 @@ textarea{resize:vertical;min-height:72px}
 #content{flex:1;overflow-y:auto;height:100vh;display:flex;flex-direction:column}
 #topbar{background:var(--blanco);border-bottom:1px solid var(--borde);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 #topbar-title{font-size:15px;font-weight:700}
-#topbar-sub{font-size:12px;color:var(--texto2);margin-left:auto}
+#topbar-sub{font-size:12px;color:var(--texto2)}
 #hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--texto);padding:2px}
 #page{flex:1;padding:20px}
 
@@ -160,11 +160,13 @@ textarea{resize:vertical;min-height:72px}
 .prog-table th.resp-th{min-width:140px;text-align:left}
 .prog-table td{padding:7px 10px;border-bottom:1px solid var(--borde);vertical-align:middle}
 .prog-table tr:last-child td{border-bottom:none}
-.prog-table tr:hover td{background:#FAFAF8;cursor:pointer}
+.prog-table tr[data-actid]:hover td{background:#F1EFE8;cursor:pointer}
 .prog-table .freq-row td{background:#F1EFE8;font-weight:700;font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
 .prog-table .act-nombre{font-size:12px;line-height:1.4}
 .prog-table .cat-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#E5E3DC;color:var(--texto2);margin-top:2px}
-.celda-mes{text-align:center;font-weight:700;font-size:12px}
+.celda-mes{text-align:center;font-weight:700;font-size:12px;position:relative}
+.prog-table tr:hover .quick-r-btn{display:block!important}
+.quick-r-btn:hover{background:rgba(21,128,61,1)!important}
 .celda-mes.p{color:var(--texto3)}
 .celda-mes.r{color:var(--verde)}
 .celda-mes.vencida{color:var(--rojo)}
@@ -354,8 +356,10 @@ textarea{resize:vertical;min-height:72px}
   <div id="content">
     <div id="topbar">
       <button id="hamburger" aria-label="Menú"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
-      <div id="topbar-title">—</div>
-      <div id="topbar-sub"></div>
+      <div>
+        <div id="topbar-title">—</div>
+        <div id="topbar-sub" style="font-size:13px;font-weight:700;color:var(--acc);margin-top:1px"></div>
+      </div>
     </div>
     <div id="page"><div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div></div>
   </div>
@@ -1056,10 +1060,10 @@ async function aplicarFiltros() {
       $('estacionBannerNombre').textContent = estNombreSel;
       const mesTxt = mesesSelArr.length === 1 ? MESES[mesesSelArr[0]-1] : mesesSelArr.length > 1 ? `${mesesSelArr.length} meses seleccionados` : 'Todos los meses';
       $('estacionBannerSub').textContent = mesTxt + ' · ' + ANIO;
-      if (topSub) topSub.textContent = estNombreSel;
+      if (topSub) { topSub.textContent = estNombreSel; topSub.style.display = 'block'; }
     } else {
       banner.style.display = 'none';
-      if (topSub) topSub.textContent = '';
+      if (topSub) { topSub.textContent = ''; topSub.style.display = 'none'; }
     }
   }
   let acts = Object.entries(CATALOGO).filter(([id,act]) => {
@@ -1098,7 +1102,7 @@ async function aplicarFiltros() {
       <th style="width:36px;text-align:center">#</th>
       <th>Actividad</th>`;
   mesesArr.forEach(m => { html += `<th class="mes-th">${MESES[m-1]}</th>`; });
-  html += `<th class="resp-th">Responsable</th><th style="width:60px"></th></tr></thead><tbody>`;
+  html += `<th class="resp-th">Responsable</th></tr></thead><tbody>`;
 
   let contador = 0;
   let hayFilas = false;
@@ -1169,28 +1173,27 @@ async function aplicarFiltros() {
         contador++;
         hayFilas = true;
         const rowBg = contador % 2 === 0 ? '#FAFAF8' : '#fff';
-        // Quick R button — only for non-critical, non-compartida, when a single month is selected
-        const mesUnico = mesesSelArr.length === 1 ? mesesSelArr[0] : (mesesArr.length===1?mesesArr[0]:null);
-        const ejActual = mesUnico ? (prog[actId]?.[mesUnico]) : null;
-        const yaR = ejActual?.estado === 'R';
-        const showQuickBtn = mesUnico && !act.tambienEncargado && !_progCtx.esExterno;
-        const quickBtn = showQuickBtn ? `
-          <button class="quick-r-btn btn btn-sm ${yaR?'btn-ghost':'btn-primary'}"
-            data-qactid="${actId}" data-qestid="${estId}" data-qmes="${mesUnico}" data-qcritica="${act.critica?'1':'0'}" data-qr="${yaR?'1':'0'}"
-            style="padding:4px 10px;font-size:11px;white-space:nowrap"
-            title="${yaR?'Revertir a P':'Marcar como R'}">
-            ${yaR ? '<i class="ti ti-rotate-clockwise"></i> P' : '<i class="ti ti-check"></i> R'}
-          </button>` : '';
-
         html += `<tr data-actid="${actId}" data-estid="${estId}" style="cursor:pointer;background:${rowBg}">
           <td style="text-align:center;color:var(--texto3);font-size:11px;font-weight:600;padding:7px 6px">${contador}</td>
           <td>
             <div class="act-nombre">${act.nombre}</div>
             ${act.critica ? '<span style="font-size:10px;color:var(--rojo);margin-top:2px;display:inline-block">📷 Requiere foto</span>' : ''}
           </td>
-          ${celdas.map(c=>c||`<td style="text-align:center;color:var(--borde)">·</td>`).join('')}
+          ${celdas.map((celda, ci) => {
+            if (!celda) return `<td style="text-align:center;color:var(--borde)">·</td>`;
+            // Inject quick-R button inside the cell when it's a P cell and single month view
+            const mesNum = mesesArr[ci];
+            const esProg = (act.meses||[]).includes(mesNum);
+            if (!esProg || act.tambienEncargado || _progCtx.esExterno) return celda;
+            const ejC = prog[actId]?.[mesNum];
+            const yaRC = ejC?.estado === 'R';
+            // Insert quick button inside P cells only
+            if (!yaRC) {
+              return celda.replace('</td>', `<button class="quick-r-btn" data-qactid="${actId}" data-qestid="${estId}" data-qmes="${mesNum}" data-qcritica="${act.critica?'1':'0'}" data-qr="0" title="Marcar como R" style="display:none;position:absolute;inset:0;width:100%;height:100%;background:rgba(21,128,61,.9);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:700;border-radius:0">✓R</button></td>`);
+            }
+            return celda;
+          }).join('')}
           <td>${respTag(act.responsable, act.tambienEncargado)}</td>
-          <td style="padding:6px 8px;white-space:nowrap">${quickBtn}</td>
         </tr>`;
       });
     });
