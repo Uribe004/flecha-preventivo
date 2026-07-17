@@ -1133,17 +1133,17 @@ async function aplicarFiltros() {
             const ej = prog[actId]?.[mesNum];
             const esExt = _progCtx.esExterno;
             if (ej?.estado === 'R' || (esExt && ej?.estadoExterno === 'certificada')) {
-              return `<td class="celda-mes" title="Realizado: ${fmtFecha(ej?.fechaReal)}" style="background:#DCFCE7;text-align:center"><span style="color:var(--verde);font-weight:700;font-size:13px">R</span></td>`;
+              return `<td class="celda-mes celda-click" data-cactid="${actId}" data-cestid="${estId}" data-cmes="${mesNum}" data-ccritica="0" data-cr="1" title="Realizado: ${fmtFecha(ej?.fechaReal)} — Clic para revertir a P" style="background:#DCFCE7;text-align:center;cursor:pointer"><span style="color:var(--verde);font-weight:700;font-size:13px">R</span></td>`;
             } else if (esExt && ej?.estadoExterno && ej.estadoExterno !== 'pendiente') {
               const extBadge = { agendada:'Ag.', ejecutada:'Ej.' };
               const extColor = { agendada:'var(--ambar)', ejecutada:'#1D4ED8' };
               return `<td class="celda-mes" style="background:#FEF3C7;text-align:center" title="${ej.estadoExterno}"><span style="color:${extColor[ej.estadoExterno]};font-weight:700;font-size:11px">${extBadge[ej.estadoExterno]}</span></td>`;
             } else if (mesNum < mesHoy) {
               if (estadoSel && !estadoSel.includes('vencida') && !estadoSel.includes('pendiente')) return null;
-              return `<td class="celda-mes" style="background:#FEE2E2;text-align:center"><span style="color:var(--rojo);font-weight:700;font-size:12px">P</span></td>`;
+              return `<td class="celda-mes celda-click" data-cactid="${actId}" data-cestid="${estId}" data-cmes="${mesNum}" data-ccritica="${act.critica?'1':'0'}" style="background:#FEE2E2;text-align:center;cursor:pointer" title="Clic para marcar como R"><span style="color:var(--rojo);font-weight:700;font-size:12px">P</span></td>`;
             } else {
               if (estadoSel && !estadoSel.includes('pendiente')) return null;
-              return `<td class="celda-mes" style="text-align:center"><span style="color:var(--texto3);font-size:12px">P</span></td>`;
+              return `<td class="celda-mes celda-click" data-cactid="${actId}" data-cestid="${estId}" data-cmes="${mesNum}" data-ccritica="${act.critica?'1':'0'}" style="text-align:center;cursor:pointer" title="Clic para marcar como R"><span style="color:var(--texto3);font-size:12px">P</span></td>`;
             }
           });
 
@@ -1159,7 +1159,11 @@ async function aplicarFiltros() {
           }
 
           if (!respHeaderShown) {
-            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#2C2C2A;color:#fff;font-weight:700;font-size:12px;padding:10px 14px"><span class="resp-tag ${respCls}" style="font-size:11px">${respLabel}</span></td></tr>`;
+            const estNombreHdr = estacionSel ? (ESTACIONES[estacionSel]?.nombre || estacionSel) : null;
+            const estHtml = estNombreHdr
+              ? `<span style="font-size:17px;font-weight:800;color:#fff;letter-spacing:.01em;margin-right:14px">${estNombreHdr}</span>`
+              : '';
+            html += `<tr><td colspan="${mesesArr.length+3}" style="background:#2C2C2A;color:#fff;font-weight:700;font-size:12px;padding:10px 14px;display:flex;align-items:center;gap:8px">${estHtml}<span class="resp-tag ${respCls}" style="font-size:11px">${respLabel}</span></td></tr>`;
             respHeaderShown = true;
           }
           if (!freqHeaderShown) {
@@ -1235,10 +1239,43 @@ async function aplicarFiltros() {
     });
   });
 
+  // Cell click → quick mark R/P without opening modal
+  cont.querySelectorAll('.celda-click').forEach(td => {
+    td.addEventListener('click', async e => {
+      e.stopPropagation();
+      const actId   = td.getAttribute('data-cactid');
+      const estId   = td.getAttribute('data-cestid');
+      const mes     = parseInt(td.getAttribute('data-cmes'));
+      const critica = td.getAttribute('data-ccritica') === '1';
+      const yaR     = td.getAttribute('data-cr') === '1';
+
+      if (yaR) {
+        if (!confirm('¿Revertir esta actividad a Pendiente (P)?')) return;
+        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'P', fechaReal:null, marcadoPor:null });
+        await refreshTabla();
+        return;
+      }
+
+      if (critica) {
+        // Open modal directly to photo section
+        const progRow = await dbGet(`programa/${ANIO}/${estId}`) || {};
+        abrirModalActividad(actId, estId, progRow, mes, true);
+      } else {
+        // Mark R instantly
+        td.style.background = '#DCFCE7';
+        td.innerHTML = '<span style="color:var(--verde);font-weight:700;font-size:13px">R</span>';
+        await dbSet(`programa/${ANIO}/${estId}/${actId}/${mes}`, { estado:'R', fechaReal:Date.now(), marcadoPor:USER.id });
+        const ejId = `ej${Date.now()}`;
+        await dbSet(`ejecuciones/${estId}/${actId}/${ejId}`, { estado:'R', fechaReal:Date.now(), mes, marcadoPor:USER.id });
+        await refreshTabla();
+      }
+    });
+  });
+
   // Row click → open modal
   cont.querySelectorAll('tr[data-actid]').forEach(row => {
     row.addEventListener('click', async e => {
-      if (e.target.closest('.quick-r-btn')) return; // handled above
+      if (e.target.closest('.celda-click')) return; // handled above
       const actId = row.getAttribute('data-actid');
       const estId = row.getAttribute('data-estid');
       if (_progCtx.esExterno) {
