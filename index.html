@@ -355,7 +355,7 @@ textarea{resize:vertical;min-height:72px}
     <div id="topbar">
       <button id="hamburger" aria-label="Menú"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       <div id="topbar-title">—</div>
-      <div id="topbar-sub" id="topbarSub"></div>
+      <div id="topbar-sub"></div>
     </div>
     <div id="page"><div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div></div>
   </div>
@@ -783,6 +783,7 @@ async function renderVista(id) {
   const page = $('page');
   const titles = { semaforo:'Dashboard', 'programa-enc':'Mi programa', 'programa-mtto':'Mis actividades', 'programa-todas':'Programa completo', externos:'Proveedores externos', catalogo:'Catálogo de actividades', planeacion:'Planeación anual', usuarios:'Usuarios' };
   $('topbar-title').textContent = titles[id] || id;
+  $('topbar-sub').textContent = '';
   page.innerHTML = `<div class="loader"><i class="ti ti-loader-2" aria-hidden="true"></i><span>Cargando…</span></div>`;
   CATALOGO = await dbGet('catalogo') || {};
   switch(id) {
@@ -1044,6 +1045,23 @@ async function aplicarFiltros() {
   const prog  = await dbGet(`programa/${anio}/${estId}`) || {};
 
   const mesesSelArr = mesSel;
+
+  // Update station banner and topbar
+  const estNombreSel = estacionSel ? ESTACIONES[estacionSel]?.nombre : null;
+  const banner = $('estacionBanner');
+  const topSub = $('topbar-sub');
+  if (banner) {
+    if (estNombreSel) {
+      banner.style.display = 'flex';
+      $('estacionBannerNombre').textContent = estNombreSel;
+      const mesTxt = mesesSelArr.length === 1 ? MESES[mesesSelArr[0]-1] : mesesSelArr.length > 1 ? `${mesesSelArr.length} meses seleccionados` : 'Todos los meses';
+      $('estacionBannerSub').textContent = mesTxt + ' · ' + ANIO;
+      if (topSub) topSub.textContent = estNombreSel;
+    } else {
+      banner.style.display = 'none';
+      if (topSub) topSub.textContent = '';
+    }
+  }
   let acts = Object.entries(CATALOGO).filter(([id,act]) => {
     if (act.soloEstacion && act.soloEstacion !== estId) return false;
     if (freqSel && !freqSel.includes(act.freq)) return false;
